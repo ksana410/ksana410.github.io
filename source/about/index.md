@@ -21,5 +21,5 @@ date: 2018-12-30 10:39:01
 ---
 哪里可以找到我：
 * Github: [ksana410](https://github.com/ksana410)
-* Youtube: [Vincent折腾日记](https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw)
+* Youtube: [Vincent折腾笔记](https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw)
 * 没有了
