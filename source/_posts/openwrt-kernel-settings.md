@@ -27,5 +27,4 @@ do for i in $(cat '/etc/passwd');do
     Global build settings
 >- [ ] 这是什么
 
-![](/test.png)
 {% asset_img test.png This is an test image %}
