@@ -81,3 +81,12 @@ deploy:
   repo: git@github.com:ksana410/ksana410.github.io.git 
   type: git
   branch: master
+
+# search
+## npm install hexo-generator-searchdb --save
+search:
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000
+
