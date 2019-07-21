@@ -1,10 +1,10 @@
 ---
-title: Linux路由补完计划02 Debian安装及配置转发
+title: Linux路由补完计划02 Debian安装及配置基础路由功能
 date: 2019-07-20 22:16:56
 tags:
 ---
 
-## Linux路由补完计划02 Debian安装及配置转发
+## Linux路由补完计划02 Debian安装及配置基础路由功能
 
 ### 前言
 
