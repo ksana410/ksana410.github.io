@@ -130,7 +130,54 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 ##### 新建虚拟机
 
-未完待续～～
+* 新建虚拟机，由于我使用的是6.0版本，ESXI上没有Debian9的虚拟机类型，那就选择Debian8吧，问题不大
+
+{% asset_img 14.png configure vm 01 %}
+{% asset_img 15.png configure vm 02 %}
+
+* 选择两个处理器，内存就用原计划的256M吧
+
+{% asset_img 16.png configure vm 03 %}
+{% asset_img 17.png configure vm 04 %}
+
+* 网卡选择两块，VM Network对应172.16.1.0/24网段，作为Linux Router的WAN口，Linux router对应192.168.100.0.24网段，作为LAN口，硬盘直接使用默认配置，16G足矣
+
+{% asset_img 18.png configure vm 05 %}
+{% asset_img 19.png configure vm 06 %}
+
+* 以上结束之后记得勾选上完成前编辑虚拟机设置
+
+{% asset_img 20.png configure vm 07 %}
+
+* 在编辑界面需要修改两个位置，移除软盘，添加ISO镜像到虚拟光驱，并且勾选上打开电源是连接，如下图所示
+
+{% asset_img 21.png configure vm 08 %}
+{% asset_img 22.png configure vm 09 %}
+
+> 至此虚拟机的前期配置就搞了，如果使用6.5或者6.7版本的ESXI，在网页上配置基本上也类似
+
+##### 安装虚拟机
+
+---
+
+在ESXI中安装虚拟机应该不难，Debian9的安装也很简单，大致上过去在Hyper-V上安装Ubuntu一样，为了节省时间，我就直接忽略这部分了（希望大家不要打我），只不过为了有效利用256M的内存，需要在组件选择的时候稍微调整一下，如下图所示：
+
+{% asset_img 25.png install vm %}
+
+> 需要取消掉桌面环境和打印服务组件，启用ssh服务，桌面的环境肯定会消耗不小的性能，而打印机我觉得作为二级路由暂时还用不到，用不到就不浪费空间来安装了，然后启用SSH的话就可以远程进行管理了
+
+##### 正式配置
+
+---
+
+###### 1.安装Open-vm-tool组件
+
+安装Open-vm-tool之后会比较方便的进行虚拟机开关机和重启，安装也很简单
+
+```shell
+mount /dev/cdrom /mnt #挂载光驱至mnt目录下
+cd /mnt && cp VMware
+```
 
 ### 更新历史
 
