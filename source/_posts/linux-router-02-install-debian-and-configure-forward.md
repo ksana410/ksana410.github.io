@@ -158,29 +158,172 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 ##### 安装虚拟机
 
----
-
 在ESXI中安装虚拟机应该不难，Debian9的安装也很简单，大致上过去在Hyper-V上安装Ubuntu一样，为了节省时间，我就直接忽略这部分了（希望大家不要打我），只不过为了有效利用256M的内存，需要在组件选择的时候稍微调整一下，如下图所示：
 
 {% asset_img 25.png install vm %}
 
 > 需要取消掉桌面环境和打印服务组件，启用ssh服务，桌面的环境肯定会消耗不小的性能，而打印机我觉得作为二级路由暂时还用不到，用不到就不浪费空间来安装了，然后启用SSH的话就可以远程进行管理了
 
-##### 正式配置
+#### 正式配置
 
 ---
 
-###### 1.安装Open-vm-tool组件
+##### 1.安装Open-vm-tool组件
 
 安装Open-vm-tool之后会比较方便的进行虚拟机开关机和重启，安装也很简单
 
+首先需要点击控制台上的虚拟机选项——客户机—— **安装/升级VMware Tools**，中间会跳出几个对话框，不用管，直接确定
+
+{% asset_img 26.png configure debian 01 %}
+{% asset_img 27.png configure debian 02 %}
+{% asset_img 28.png configure debian 03 %}
+
+之后在控制台中执行下述命令
+
 ```shell
 mount /dev/cdrom /mnt #挂载光驱至mnt目录下
-cd /mnt && cp VMware
+cd /mnt && cp VMwareTools-10.2.5-8068406.tar.gz /tmp #此处的VMwareTools的版本会随着ESXI版本的不同而不同，多使用Tab键补全命令
+cd /tmp
+tar xzf VMwareTools-10.2.5-8068406.tar.gz #将刚刚复制的压缩包解压
+cd vmware-tools-distrib/ #进入刚刚解压出来的压缩包目录
 ```
+
+此处即可看到安装组件的脚本
+
+{% asset_img 29.png configure debian 04 %}
+
+直接执行```./vmware-install.pl```即可，此处会进入交互安装模式，除了第一个需要回答之外，其它的基本上一路回车即可，此处直接输入y并回车
+
+{% asset_img 30.png configure debian 05 %}
+
+安装完成之后就可以在ESXI的摘要界面上看到虚拟机此时使用的IP地址了，出现这个就说明安装成功并正常运行了
+
+{% asset_img 31.png configure debian 06 %}
+{% asset_img 32.png configure debian 07 %}
+
+##### 2.安装基础软件及配置环境
+
+> 此处安装的软件并不是必须的，但可以提升Linux的操作便利性（**只用命令行还谈什么便利性**），我一般会执行这样的命令
+
+```apt-get install vim htop lrzsz git mlocate tmux -y```
+
+当然，由于使用了中文语言环境，在控制台上显示的中文都是方块，还是用SSH配置比较好
+
+{% asset_img 34.png configure debian 08 %}
+
+之后再调整一下快捷命令，执行如下命令```vi ~/.bashrc```，此处的 **~** 表示的是用户家目录，类似于Windows上Administrator目录，里面存放着用户的个人文件和配置， **.** 表示隐藏的文件
+
+{% asset_img 36.png configure debian 09 %}
+
+将上述的内容修改成如下所示
+
+{% asset_img 37.png configure debian 10 %}
+
+这些内容主要是让文件进行彩色显示，同时设置一些快捷命令，比如“ll”就相当于执行了“ls -l”，有兴趣的可以对比一下这些命令的差异，保存并退出之后，执行```source ~/.bashrc```即可应用上面的那些修改
+
+##### 3.修改SSH用密码登录
+
+如果要使用SSH登陆的话需要修改一下SSH的配置文件，此处执行```vi /etc/ssh/sshd.config```，找到这个位置
+
+{% asset_img 38.png configure debian 11 %}
+
+修改成如下内容即可
+
+{% asset_img 39.png configure debian 12 %}
+
+之后执行```systemctl restart sshd```重启一下服务就可以应用修改了
+
+##### 4.配置网卡地址
+
+按照原定的计划，虚拟机的两张网卡分别配置成WAN口和LAN口，此处执行```ip a```查看网卡名，**ens192** 将作为WAN口， **ens224** 作为LAN口
+
+{% asset_img 40.png configure debian 13 %}
+
+网卡的配置文件是“/etc/network/interface”,直接执行```vi /etc/network/interface```进行编辑，下面的是我的配置，除了IP，网关等信息外，我还加入了 **auto** 这个配置，有了这个配置的加入，当执行```systemctl restart networking```时将同时重新载入网卡的配置
+
+{% asset_img 41.png configure debian 14 %}
+
+直接执行```systemctl restart networking```，然后通过```ip a```查看网卡情况，配置的网卡信息就已经生效了
+
+{% asset_img 42.png configure debian 15 %}
+
+之后就可以通过SSH工具进行连接了，此处我选择了[Xshell](https://www.netsarang.com/zh/xshell/),使用个人和学生版即可，商业版是需要收费的
+
+{% asset_img 43.png configure debian 16 %}
+
+##### 5.开启转发并配置iptables
+
+> Linux如果要成为一台路由器，必须先开启转发的功能
+
+```vi /etc/sysctl.conf```对 **sysctl.conf** 文件进行编辑，定位到如下位置
+
+{% asset_img 46.png configure debian 17 %}
+
+删除此行前面的 **#** 符号，然后保存，执行```sysctl -p```即可生效，并且重启也不会受到影响
+
+---
+
+接下来就是重头戏了，iptables命令，此处就不深入进行讲解了，如果大家有兴趣我会更新一下这方面的知识
+
+```shell
+# 重置iptables配置
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t nat -X
+iptables -t mangle -F
+iptables -t mangle -X
+iptables -t raw -F
+iptables -t raw -X
+
+# 转发两块网卡之间的数据
+iptables -A FORWARD -i ens224 -s 192.168.100.0/24 -j ACCEPT
+iptables -A FORWARD -i ens192 -d 192.168.100.0/24 -j ACCEPT
+
+# 源地址伪装，将所有内网的地址全部伪装成WAN口的地址，所有数据包都修改了来源的地址，这里是172.16.1.50/24
+iptables -t nat -A POSTROUTING -o ens192 -j MASQUERADE
+
+# 开启必要的端口和策略，此处开启WAN口的SSH端口
+iptables -I INPUT 1 -i lo -j ACCEPT
+iptables -I INPUT 1 -i ens224 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -i ens192 -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# 配置默认的防火墙规则，防火墙一般都是以先允许后阻止这样的原则进行配置的，并且防火墙的规则是从上而下依次进行匹配的，需要开放的规则必须要放在阻止的规则上面，此处就是最后的阻止部分
+iptables -P INPUT DROP
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD DROP
+```
+
+{% asset_img 47.png configure debian 18 %}
+
+配置完上述命令之后，路由功能基本上就实现了
+
+##### 6.实测
+
+口说无凭，还是拿出点证据来吧！我这次就用上次演示的Manjaro虚拟机吧，修改网络连接，使用最新建立的那个网卡
+
+{% asset_img 48.png configure debian 19 %}
+{% asset_img 49.png configure debian 20 %}
+
+同时修改一下虚拟机的网卡地址，此次我只是配置了路由，DHCP和DNS功能并没有配置，所以需要手动指定，将网络设置为192.168.100.10，和 **ens224** 网卡同一个网段，网关直接指向 **ens224** 的地址，DNS就是用最常用的114.114.114.114吧
+
+{% asset_img 50.png configure debian 21 %}
+
+先ping一下看看通不通
+
+{% asset_img 51.png configure debian 22 %}
+
+就用[B站](https://www.bilibili.com/)验证一下吧
+
+{% asset_img 52.png configure debian 23 %}
+{% asset_img 53.png configure debian 24 %}
+
+右侧显示的是 **ens224** 的流量信息，看1080P的视频一点问题都没有（原谅我Manjaro的性能有点差，4K是跑不动了）
 
 ### 更新历史
 
 ---
 
 * **2019.07.21** 下载镜像及配置虚拟机网络
+* **2019.07.26** 完成主体内容
