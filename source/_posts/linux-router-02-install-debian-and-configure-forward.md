@@ -186,13 +186,14 @@ cd /mnt && cp VMwareTools-10.2.5-8068406.tar.gz /tmp #此处的VMwareTools的版
 cd /tmp
 tar xzf VMwareTools-10.2.5-8068406.tar.gz #将刚刚复制的压缩包解压
 cd vmware-tools-distrib/ #进入刚刚解压出来的压缩包目录
+ls
 ```
 
 此处即可看到安装组件的脚本
 
 {% asset_img 29.png configure debian 04 %}
 
-直接执行```./vmware-install.pl```即可，此处会进入交互安装模式，除了第一个需要回答之外，其它的基本上一路回车即可，此处直接输入y并回车
+直接执行 `./vmware-install.pl` 即可，此处会进入交互安装模式，除了第一个需要回答之外，其它的基本上一路回车即可，此处直接输入y并回车
 
 {% asset_img 30.png configure debian 05 %}
 
@@ -205,13 +206,13 @@ cd vmware-tools-distrib/ #进入刚刚解压出来的压缩包目录
 
 > 此处安装的软件并不是必须的，但可以提升Linux的操作便利性（**只用命令行还谈什么便利性**），我一般会执行这样的命令
 
-```apt-get install vim htop lrzsz git mlocate tmux -y```
+`apt-get install vim htop lrzsz git mlocate tmux -y`
 
 当然，由于使用了中文语言环境，在控制台上显示的中文都是方块，还是用SSH配置比较好
 
 {% asset_img 34.png configure debian 08 %}
 
-之后再调整一下快捷命令，执行如下命令```vi ~/.bashrc```，此处的 **~** 表示的是用户家目录，类似于Windows上Administrator目录，里面存放着用户的个人文件和配置， **.** 表示隐藏的文件
+之后再调整一下快捷命令，执行如下命令 `vi ~/.bashrc` ，此处的 **~** 表示的是用户家目录，类似于Windows上Administrator目录，里面存放着用户的个人文件和配置， **.** 表示隐藏的文件
 
 {% asset_img 36.png configure debian 09 %}
 
@@ -219,11 +220,11 @@ cd vmware-tools-distrib/ #进入刚刚解压出来的压缩包目录
 
 {% asset_img 37.png configure debian 10 %}
 
-这些内容主要是让文件进行彩色显示，同时设置一些快捷命令，比如“ll”就相当于执行了“ls -l”，有兴趣的可以对比一下这些命令的差异，保存并退出之后，执行```source ~/.bashrc```即可应用上面的那些修改
+这些内容主要是让文件进行彩色显示，同时设置一些快捷命令，比如“ll”就相当于执行了“ls -l”，有兴趣的可以对比一下这些命令的差异，保存并退出之后，执行 `source ~/.bashrc` 即可应用上面的那些修改
 
 ##### 3.修改SSH用密码登录
 
-如果要使用SSH登陆的话需要修改一下SSH的配置文件，此处执行```vi /etc/ssh/sshd.config```，找到这个位置
+如果要使用SSH登陆的话需要修改一下SSH的配置文件，此处执行 `vi /etc/ssh/sshd.config` ，找到这个位置
 
 {% asset_img 38.png configure debian 11 %}
 
@@ -231,19 +232,19 @@ cd vmware-tools-distrib/ #进入刚刚解压出来的压缩包目录
 
 {% asset_img 39.png configure debian 12 %}
 
-之后执行```systemctl restart sshd```重启一下服务就可以应用修改了
+之后执行 `systemctl restart sshd` 重启一下服务就可以应用修改了
 
 ##### 4.配置网卡地址
 
-按照原定的计划，虚拟机的两张网卡分别配置成WAN口和LAN口，此处执行```ip a```查看网卡名，**ens192** 将作为WAN口， **ens224** 作为LAN口
+按照原定的计划，虚拟机的两张网卡分别配置成WAN口和LAN口，此处执行 `ip a` 查看网卡名，**ens192** 将作为WAN口， **ens224** 作为LAN口
 
 {% asset_img 40.png configure debian 13 %}
 
-网卡的配置文件是“/etc/network/interface”,直接执行```vi /etc/network/interface```进行编辑，下面的是我的配置，除了IP，网关等信息外，我还加入了 **auto** 这个配置，有了这个配置的加入，当执行```systemctl restart networking```时将同时重新载入网卡的配置
+网卡的配置文件是“/etc/network/interface”,直接执行 `vi /etc/network/interface` 进行编辑，下面的是我的配置，除了IP，网关等信息外，我还加入了 **auto** 这个配置，有了这个配置的加入，当执行 `systemctl restart networking` 时将同时重新载入网卡的配置
 
 {% asset_img 41.png configure debian 14 %}
 
-直接执行```systemctl restart networking```，然后通过```ip a```查看网卡情况，配置的网卡信息就已经生效了
+直接执行 `systemctl restart networking` ，然后通过 `ip a` 查看网卡情况，配置的网卡信息就已经生效了
 
 {% asset_img 42.png configure debian 15 %}
 
@@ -255,11 +256,11 @@ cd vmware-tools-distrib/ #进入刚刚解压出来的压缩包目录
 
 > Linux如果要成为一台路由器，必须先开启转发的功能
 
-```vi /etc/sysctl.conf```对 **sysctl.conf** 文件进行编辑，定位到如下位置
+ `vi /etc/sysctl.conf`对 **sysctl.conf** 文件进行编辑，定位到如下位置
 
 {% asset_img 46.png configure debian 17 %}
 
-删除此行前面的 **#** 符号，然后保存，执行```sysctl -p```即可生效，并且重启也不会受到影响
+删除此行前面的 **#** 符号，然后保存，执行 `sysctl -p` 即可生效，并且重启也不会受到影响
 
 ---
 
