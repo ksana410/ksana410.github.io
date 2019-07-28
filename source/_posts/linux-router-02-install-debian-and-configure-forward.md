@@ -322,9 +322,50 @@ iptables -P FORWARD DROP
 
 右侧显示的是 **ens224** 的流量信息，看1080P的视频一点问题都没有（原谅我Manjaro的性能有点差，4K是跑不动了）
 
+##### 7.iptables规则固化
+
+Debian的iptables不会开机启动，如果不进行一些操作的话，一重启一开始配置的iptables规则就会失效，路由功能就废了，为了解决这个问题，需要在开机的时候就加载iptables规则
+
+执行`cd /etc/network`打开network目录，此时在这个目录下有如下几个文件
+
+{% asset_img 54.png configure debian 22 %}
+
+每个文件对应的功能如下：
+
+|文件名|说明|
+| :---: | :---: |
+|if-down.d|网卡关闭时执行动作|
+|if-post-down.d|网卡关闭后执行动作|
+|if-pre-up.d|网卡启动前执行动作|
+|if-up.d|网卡启动时执行动作|
+|interface|网卡配置信息|
+|interface.d|网卡扩展配置|
+
+此处需要用到两个目录，**if-pre-up.d** 和 **if-post-down.d**  ，我需要写两个脚本，分别在网卡开启前导入iptables规则和在网卡关闭后自动保存iptables规则，看似功能很“高级”，但实际上实现非常简单
+
+在**if-post-down.d**目录中新建一个文件，`vi /etc/network/if-post-down.d/iptables`，然后输入如下内容
+
+```shell
+#!/bin/bash
+
+/sbin/iptables-save > /etc/iptables/rule.v4 #将iptables规则保存至/etc/iptables目录下的rule.v4文件中
+```
+
+同样的在**if-pre-up.d**目录中新建一个文件，`vi /etc/network/if-pre-up.d/iptables`并输入如下内容
+
+```shell
+#!/bin/bash
+
+/sbin/iptables-restore < /etc/iptables/rule.v4 #将/etc/iptables/rule.v4中的iptables配置导入系统
+```
+
+以上的操作即可在系统重启时自动保存iptables规则，并开机加载
+
+
 ### 更新历史
 
 ---
 
 * **2019.07.21** 下载镜像及配置虚拟机网络
 * **2019.07.26** 完成主体内容
+* **2019.07.28** 增加重启后加载iptables的方法
