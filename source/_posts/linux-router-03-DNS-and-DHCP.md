@@ -25,7 +25,7 @@ date: 2019-07-26 23:03:13
 [dnsmasq](https://wiki.archlinux.org/index.php/Dnsmasq_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))是一款轻量化的DNS服务器，当然它的功能还不止这些，还能提供DHCP和PXE网络启动，对于家里这种比较小型的局域网，用它简直太合适了
 
 * 方案二：
-[AdGuard Home](https://adguard.com/zh_cn/adguard-home/overview.html)是AdGuard公司开源的一款使用Go语言开发的DNS服务器软件，支持家长控制和广告过滤，关键还支持[DNS over TLS](https://zh.wikipedia.org/wiki/DNS_over_TLS)，对于部署环境还不怎么挑剔；配置简单，虽然它自身也支持DHCP功能，但还处在BATE阶段，试用之后感觉也不是特别好，那就用[dhcpd](https://wiki.archlinux.org/index.php/Dhcpd_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))来提供DHCP功能吧！
+[AdGuard Home](https://adguard.com/zh_cn/adguard-home/overview.html)是AdGuard公司开源的一款使用Go语言开发的DNS服务器软件，支持家长控制和广告过滤，关键还支持[DNS over TLS](https://zh.wikipedia.org/wiki/DNS_over_TLS)，对于部署环境还不怎么挑剔；配置简单，虽然它自身也支持DHCP功能，但还处在BATE阶段，试用之后感觉也不是特别好，那就用[dhcpd](https://wiki.archlinux.org/index.php/Dhcpd_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87) )来提供DHCP功能吧！
 
 ### 正式搭建
 
