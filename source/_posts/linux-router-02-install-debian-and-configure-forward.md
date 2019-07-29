@@ -240,9 +240,9 @@ ls
 
 {% asset_img 40.png configure debian 13 %}
 
-网卡的配置文件是“/etc/network/interface”,直接执行 `vi /etc/network/interface` 进行编辑，下面的是我的配置，除了IP，网关等信息外，我还加入了 **auto** 这个配置，有了这个配置的加入，当执行 `systemctl restart networking` 时将同时重新载入网卡的配置
+网卡的配置文件是“/etc/network/interface”,直接执行 `vi /etc/network/interface` 进行编辑，下面的是我的配置，除了IP，网关等信息外，我还使用 **auto** 替换了 **allow-hotplug** ，确保在系统启动时候无论网卡处在何种状态都启用网卡
 
-{% asset_img 41.png configure debian 14 %}
+{% asset_img 55.png configure debian 14 %}
 
 直接执行 `systemctl restart networking` ，然后通过 `ip a` 查看网卡情况，配置的网卡信息就已经生效了
 
@@ -368,3 +368,4 @@ Debian的iptables不会开机启动，如果不进行一些操作的话，一重
 * **2019.07.21** 下载镜像及配置虚拟机网络
 * **2019.07.26** 完成主体内容
 * **2019.07.28** 增加重启后加载iptables的方法
+* **2019.07.29** 修正部分错误
