@@ -15,6 +15,14 @@ tags:
 
 <!-- more -->
 
+### 简单展示
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/01FVI6bnCcU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+---
+
+### 历程
+
 作为一个网络技术人员，如果单纯使用百度的话真的找不到多少有用的资料，特别是当初学习Linux的时候，虽然我的入门书是[**《鸟哥的私房菜》**](http://linux.vbird.org/linux_basic/)这样的写得非常详细，甚至说有些罗嗦的书，但实际操作中还是有很多机会遇到解决不了的问题，那怎么办呢！只能用搜索引擎，当时正值Google还未退出中国，Google引擎还是很好用的时候，后悔入坑了Google全家桶，搞得我至今还是无法割舍Google帐号所带来的便利，后来的事情相信大家也是知道的，Google退出中国，只能使用香港服务器，到后来Gmail被屏蔽，Google彻底被墙，那不能用怎么办呢，当初还非常天真的认为baidu应该还能凑合吧，可是最后发现那就是个垃圾～～～
 
 没办法，先从一些免费的工具开始吧，手机上安装了很多免费翻墙软件，然后随着天朝加紧GFW的建设，这些软件都退出了历史舞台，直到Shdowsocks的出现，我发现了可以在路由器上配置透明代理这样的操作，正值[**极路由**](https://zh.wikipedia.org/wiki/%E6%9E%81%E8%B7%AF%E7%94%B1)兴起的智能路由器风潮（当时并没有了解过OpenWRT，大家不要喷我），然后就入坑了极1S，然后官方的第三方应用被限制，没办法，求助google，仔细去研究了一下OpenWRT，刷了感觉还凑合，可是极1S是百兆的路由器，家里的宽带支持多拨，它的性能跟不上……
@@ -56,11 +64,36 @@ tags:
 
 ---
 
-### 简单展示
+### 教程更新计划
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/01FVI6bnCcU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+> 需要一定的网络和Linux基础，懒癌患者托更比较严重，望周知
+
+#### 基础
+
+* [x] Linux路由补完计划00 虚拟机安装Debian
+* [x] Linux路由补完计划01 基本概念说明
+* [x] Linux路由补完计划02 Debian安装及配置基础路由功能
+* [x] Linux路由补完计划03 配置DNS和DHCP
+
+#### 进阶
+
+* [ ] Linux路由补完计划04 利用DNS进行广告过滤
+* [ ] Linux路由补完计划05 DNS防污染
+* [ ] Linux路由补完计划06 透明代理搭建——V2ray篇
+* [ ] Linux路由补完计划07 透明代理搭建——Shdowsocks篇
+* [ ] Linux路由补完计划08 利用二级路由搭建Wireguard VPN
+
+#### 扩展
+
+* [ ] Linux路由补完计划09 LVM磁盘扩容
+* [ ] Linux路由补完计划10 搭建文件共享
+* [ ] Linux路由补完计划11 ipxe无盘系统
+…………
+
+---
 
 ### 更新历史
 
 * **2019.07.17** 初始版本
 * **2019.07.18** 增加部分链接及说明调整
+* **2019.08.04** 完善更新计划
