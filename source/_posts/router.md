@@ -1,8 +1,8 @@
 ---
-layout: configure
 title: Linux路由补完计划 挖坑起因
 date: 2019-07-17 23:19:36
 tags:
+  - Linux
 ---
 
 ## Linux路由补完计划 挖坑起因

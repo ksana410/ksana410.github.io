@@ -2,6 +2,7 @@
 title: Linux路由补完计划02 Debian安装及配置基础路由功能
 date: 2019-07-20 22:16:56
 tags:
+  - Linux
 ---
 
 ## Linux路由补完计划02 Debian安装及配置基础路由功能
