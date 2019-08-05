@@ -239,7 +239,7 @@ cd /tmp
 tar xzf VMwareTools-10.2.5-8068406.tar.gz
 ls
 cd vmware-tools-distrib
-ls
+
 ./vmware-install.pl
 ```
 
@@ -303,7 +303,7 @@ apt-get install tmux htop lrzsz vim -y
 
 通过`/Root`命令定位到关键参数处，删除前方的 **#** 符号，然后将后面的值改成 **yes** 后保存退出即可
 
-{% asset_img 62.png debian 70 %}
+{% asset_img 61.png debian 70 %}
 
 执行`systemctl restart sshd`即可重启SSH服务并生效
 
