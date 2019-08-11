@@ -15,6 +15,16 @@ tags:
 
 <!-- more -->
 
+### 视频说明
+
+---
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6AH0ccrt02o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+补上遗漏的防火墙固化部分：
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bRMD029150U" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ### 功能说明
 
 ---
@@ -370,3 +380,4 @@ Debian的iptables不会开机启动，如果不进行一些操作的话，一重
 * **2019.07.26** 完成主体内容
 * **2019.07.28** 增加重启后加载iptables的方法
 * **2019.07.29** 修正部分错误
+* **2019.08.11** 嵌入视频说明
