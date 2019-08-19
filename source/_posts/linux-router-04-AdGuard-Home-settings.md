@@ -31,8 +31,15 @@ date: 2019-08-11 14:46:53
 
 > AdGuard Home本身就是一款广告过滤工具，那广告过滤什么的就没啥压力了，同样的AdGuard Home还支持DNS_over_HTTPS和DNS_over_TLS等加密解析功能，利用这一点获取到正确的IP，就决定这样干，具体会不会有啥坑呢？先操作一下试试吧！
 
-DNS防污染
-广告过滤添加
+AdGuard Home整个系统已经将你需要的功能都构建好了，该怎么用完全取决于你使用哪种过滤策略，使用哪种上级DNS地址查询正确的IP地址，下面是我所使用的规则及服务器：
+
+推荐的广告过滤规则
+EasyList China <https://easylist-downloads.adblockplus.org/easylistchina.txt>
+CJX's EasyList Lite
+<https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjxlist.txt>
+
+EasyList <https://easylist.to/easylist/easylist.txt>
+
 
 ### 历史
 
@@ -40,3 +47,4 @@ DNS防污染
 
 * **2019.08.11** 成稿
 * **2019.08.12** 随手写一点
+* **2019.08.13** 添加部分链接

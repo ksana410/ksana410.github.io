@@ -137,6 +137,10 @@ dhcp-leasefile=/etc/dnsmasq.leases #保存DHCP的分配的主机和地址
 
 ---
 
+##### 视频说明
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Aez-j5dENaU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ##### 安装AdGuard Home
 
 进入AdGuard Home的[github](https://github.com/AdguardTeam/AdGuardHome/releases)，根据自己的平台下载最新版，此处下载[AdGuardHome_linux_386.tar.gz](https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.97.1/AdGuardHome_linux_386.tar.gz)，执行
@@ -259,3 +263,4 @@ AdGuard Home上的DHCP服务器还处于测试阶段，在配置过程中还是�
 * **2019.07.26** 撰写初稿
 * **2019.07.29** 完成dnsmasq配置部分
 * **2019.08.01** 完成AdGuard Home配置
+* **2019.08.19** 增加AdGuard Home视频说明部分
