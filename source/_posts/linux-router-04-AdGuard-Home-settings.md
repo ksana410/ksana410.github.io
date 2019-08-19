@@ -34,6 +34,7 @@ date: 2019-08-11 14:46:53
 AdGuard Home整个系统已经将你需要的功能都构建好了，该怎么用完全取决于你使用哪种过滤策略，使用哪种上级DNS地址查询正确的IP地址，下面是我所使用的规则及服务器：
 
 推荐的广告过滤规则
+
 |规则名|规则地址|
 | :---: | :---: |
 |EasyList China| <https://easylist-downloads.adblockplus.org/easylistchina.txt>|
@@ -41,6 +42,7 @@ AdGuard Home整个系统已经将你需要的功能都构建好了，该怎么�
 |EasyList|<https://easylist.to/easylist/easylist.txt>|
 
 上游DNS服务器选择
+
 |DNS类型|可靠性分析|推荐地址|
 | :---: | :--- | :---: |
 |UDP_DNS|常规的DNS查询方式，使用UDP明文传输，安全性差，易污染|1.1.1.1，114.114.114.114，8.8.8.8，9.9.9.9|
