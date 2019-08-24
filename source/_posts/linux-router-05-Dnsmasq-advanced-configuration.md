@@ -44,16 +44,91 @@ DNSCrypt可以加密和认证用户和 DNS 解析服务器之间的数据传输�
 
 * **项目地址：** <https://github.com/jedisct1/dnscrypt-proxy>
 
+{% asset_img 02.png dnsmasq 02 %}
+
 * **下载最新安装包：** 由于使用的32系统，所以我下载了[i386](https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_i386-2.0.25.tar.gz)版本的
+
+* **安装过程：**
+
 ```shell
+# 进入opt目录，我将把DNSCrypt-Proxy安装在这个目录下
+cd /opt
+
+# 下载对应的压缩包
 wget https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_i386-2.0.25.tar.gz
 
+# 将压缩包解压
 tar xzf dnscrypt-proxy-linux_i386-2.0.25.tar.gz
 
-cd dnscrypt-proxy
-
-
+# 进入解压到的目录
+cd linux-i386
 ```
+
+当执行`ls`命令时，可以看到DNSCrypt-Proxy的构成很简单
+
+{% asset_img 04.png dnsmasq 03 %}
+
+使用这个目录下的执行文件就可以完成DNS服务器的安装
+
+```shell
+# 生成配置文件，利用模板文件来生成
+cp example-dnscrypt-proxy.toml dnscrypt-proxy.toml
+
+# 通过配置文件修改服务的监听端口
+vi dnscrypt-proxy.toml
+```
+
+通过关键字搜索需要修改的项目
+
+{% asset_img 05.png dnsmasq 04 %}
+
+由于dnsmasq作为主服务器已经占用了53端口，为了避免程序出错，此处修改为5353，同时由于ipv6还没有在本项目中实施，所以也删除ipv6监听端口，修改完之后是这样的
+
+{% asset_img 06.png dnsmasq 05 % }
+
+保存并退出，继续执行下述的操作
+
+```shell
+# 将DNSCrypt-Proxy安装为服务
+./dnscrypt-proxy --service install
+
+# 启动服务
+./dnscrypt-proxy --service start
+```
+
+{% asset_img 07.png dnsmasq 06 %}
+
+此时DNSCrypt-Proxy就已经安装好了，并且已经添加了开机启动项
+
+* **验证是否运行：**
+
+直接使用`htop`命令查看进程，DNSCrypt-Proxy进程已经正常运行
+
+{% asset_img 08.png dnsmasq 07 %}
+
+##### 替换dnsmasq上游DNS服务器
+
+`vi /etc/dnsmasq.d/dns.conf`打开dns配置文件，将原来添加的114.114.114.114和8.8.4.4替换为127.0.0.1:5353，此处由于没有使用53端口作为监听口，所以必须手动指明端口号
+
+{% asset_img 09.png dnsmasq 08 %}
+
+执行`systemctl restart dnsmasq`即可生效
+
+##### 选择DNS解析查询模式
+
+DNSCrypt-Proxy不仅可以支持其自身的DNSCrypt协议，同时也支持通过DNS_over_HTTPS的方式来进行查询
+
+选择哪种模式可以在配置文件中进行配置，`vi /opt/linux-i386/dnscrypt-proxy.toml`
+
+{% asset_img 10.png dnsmasq 09 %}
+
+默认情况下两种协议都是开启的，需要关闭哪种就将哪种后面的`true`改成`false`即可，同时重启一下服务即可`systemctl restart dnscrypt-proxy`
+
+#### DNS查询分流
+
+> 虽然添加了DNSCrypt-Proxy作为上游服务器来解决DNS污染，但由于使用的加密公共服务器普遍都在国外，解析国内网站就比较蛋疼了，为了解决延迟问题，对国内的域名使用国内的解析服务器进行查询会比较靠谱
+
+利用[dnsmasq-china-list](https://github.com/felixonmars/dnsmasq-china-list)这个项目来解决这个问题，作者收集了大量的国内网站域名
 
 ## 历史
 
