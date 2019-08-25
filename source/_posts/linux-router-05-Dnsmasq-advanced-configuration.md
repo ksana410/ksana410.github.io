@@ -163,6 +163,8 @@ ln -s /opt/dnsmasq-china-list/bogus-nxdomain.china.conf /etc/dnsmasq.d/bogus-nxd
 
 ### 验证一下
 
+---
+
 执行`dig @127.0.0.1 www.youtube.com`验证一下，由于需要使用本地服务器进行解析，所以需要加上@127.0.0.1这一个参数，第一次解析如下
 
 {% asset_img 13.png dnsmasq 12 %}
