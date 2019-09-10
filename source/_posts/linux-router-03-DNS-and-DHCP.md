@@ -5,9 +5,7 @@ tags:
 date: 2019-07-26 23:03:13
 ---
 
-## Linux路由补完计划03 配置DNS和DHCP
-
-### 前言
+## 前言
 
 ---
 
@@ -15,7 +13,7 @@ date: 2019-07-26 23:03:13
 
 <!-- more -->
 
-### 搭建方案
+## 搭建方案
 
 ---
 
@@ -27,13 +25,13 @@ date: 2019-07-26 23:03:13
 * 方案二：
 [AdGuard Home](https://adguard.com/zh_cn/adguard-home/overview.html)是AdGuard公司开源的一款使用Go语言开发的DNS服务器软件，支持家长控制和广告过滤，关键还支持[DNS over TLS](https://zh.wikipedia.org/wiki/DNS_over_TLS)，对于部署环境还不怎么挑剔；配置简单，并且它自身还能提DHCP服务，那就直接用它吧！
 
-### 正式搭建
+## 正式搭建
 
 ---
 
 > 由于我是懒人，懒得多搭建几个测试环境，那就利用虚拟机的快照功能建立一个恢复点吧，不仅可以防止配置出错，还能多折腾几种方案，哪种方案靠谱就删掉其它的还原点就可以了
 
-#### 建立快照
+### 建立快照
 
 ---
 
@@ -49,15 +47,15 @@ date: 2019-07-26 23:03:13
 
 ---
 
-#### 利用dnsmasq搭建
+### 利用dnsmasq搭建
 
 ---
 
-##### 安装dnsmasq
+#### 安装dnsmasq
 
 **dnsmasq**已经内置在debian的软件源之中，安装起来非常简单，直接执行`apt-get install dnsmasq -y`即可，之后系统会直接进行安装，并将启动文件，配置文件等项目创建好了，开机自启也添加到了启动项
 
-##### dnsmasq的配置文件
+#### dnsmasq的配置文件
 
 接下来要做的主要就是修改**dnsmasq**的配置文件，配置文件主要是`/etc/dnsmasq.conf`和`/etc/dnsmasq.d`目录，前面一个是主配置文件，后面的那个目录属于扩展配置，当然为了管理更加方便，此处我会使用扩展配置的方式进行设置，但是默认情况下**dnsmasq**并不会调用`/etc/dnsmasq.d`中的配置文件，为了解决这个问题，需要在主配置文件中修改一个参数，`vi /etc/dnsmasq.conf`打开配置文件，移动到文件末尾，删除`conf-dir=/etc/dnsmasq.d/,*.conf`前的 **#** 符号，之后保存退出，这样**dnsmasq**就会自动进入 **/etc/dnsmasq.d** 目录中查找配置文件
 
@@ -73,7 +71,7 @@ date: 2019-07-26 23:03:13
 
 {% asset_img 07.png dnsmasq 03 %}
 
-##### 配置DNS功能
+#### 配置DNS功能
 
 实现DNS功能其实非常简单，打开配置文件，`vi /etc/dnsmasq.d/dns.conf`，输入下述内容：
 
@@ -88,7 +86,7 @@ clear-on-reload #重启后清除缓存
 
 轻量级DNS服务器的话，上述配置就足够了，接下来就是DHCP功能。
 
-##### 配置DHCP功能
+#### 配置DHCP功能
 
 在修改配置前，首先记录一下LAN口的网卡MAC地址，这个地址在后面的配置中需要用到，执行`ip a`即可查询到，此处查询到的MAC地址是**00:0c:29:c4:0a:41**
 
@@ -106,7 +104,7 @@ dhcp-leasefile=/etc/dnsmasq.leases #保存DHCP的分配的主机和地址
 
 > 简单的DHCP功能只需要这些配置就足够了，感觉很高大上，其实需要修改的也就这么点东西，现在就不引入一些高阶的功能了，够用就行
 
-##### 验证一下
+#### 验证一下
 
 * 使用`dnsmasq --test`命令验证一下配置文件，如果没有问题的话会显示`dnsmasq: syntax check OK.`
 
@@ -133,11 +131,11 @@ dhcp-leasefile=/etc/dnsmasq.leases #保存DHCP的分配的主机和地址
 
 ---
 
-#### 利用AdGuard Home搭建
+### 利用AdGuard Home搭建
 
 ---
 
-##### 视频说明
+#### 视频说明
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Aez-j5dENaU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -158,7 +156,7 @@ cd AdGuardHome
 
 {% asset_img 14.png adguard 01 %}
 
-##### 对AdGuard Home进行配置
+#### 对AdGuard Home进行配置
 
 直接在LAN口的Manjaro系统上打开浏览器进行配置，打开<http://192.168.100.1:3000>，它会根据浏览器语言自动选择显示语言，由于我使用的FireFox是英文版，故显示的是英文，如果想要显示中文，直接在右下角选择简体中文即可
 
@@ -178,7 +176,7 @@ cd AdGuardHome
 {% asset_img 20.png adguard 06 %}
 {% asset_img 21.png adguard 07 %}
 
-##### AdGuard Home功能说明
+#### AdGuard Home功能说明
 
 > AdGuard Home主要提供DNS解析，广告过滤，家长控制，DHCP等功能，由于本次还不涉及到广告过滤和DNS防污染等功能，故并不会深入说明，只是会稍微提一下
 
@@ -218,13 +216,13 @@ cd AdGuardHome
 
 {% asset_img 30.png adguard 16 %}
 
-##### 配置AdGuard Home DNS功能
+#### 配置AdGuard Home DNS功能
 
 AdGuard Home本身就已经开启了DNS功能，只不过默认使用的上级服务器是DNS_over_HTTPS的一个地址，所以要先将这个地址解析成正确的IP之后才能发起查询，在自身没有解析能力的情况下该怎么办呢？它引入了**Bootstrap DNS 服务器**，系统会先利用这个DNS对域名进行解析，然后再进行查询，这个设置项只针对使用了域名作为上级服务器的情况，默认使用的是1.1.1.1，GFW一直都DNS污染很上心，这次直接把这个地址屏蔽了，那被逼无奈只能换咯，暂时还不展示DNS防污染，那就先用114的吧，同样的在上级服务器中也加上114的地址，勾选**通过同时查询所有上流服务器以使用并行查询查询加速解析**，这个选项在多个上级服务器的情况下可以提升性能
 
 {% asset_img 33.png adguard 17 %}
 
-##### 开启AdGuard Home DHCP功能
+#### 开启AdGuard Home DHCP功能
 
 AdGuard Home上的DHCP服务器还处于测试阶段，在配置过程中还是会出现点小状况，首先选择DHCP接口，因为要在LAN口上提供DHCP服务，那就选择**ens224**吧，网关地址就填写**ens224**的地址，后面的地址范围就输入你希望客户端能够获取的IP范围，我写了10～200这个范围。然后子网掩码就用255.255.255.0，租约时间不用管，当然你想时间长点也可以手动设置一下，之后保存一下配置，点击检查DHCP服务器，可能会遇到下面的错误
 
@@ -236,7 +234,7 @@ AdGuard Home上的DHCP服务器还处于测试阶段，在配置过程中还是�
 
 {% asset_img 36.png adguard 19 %}
 
-##### 进行测试
+#### 进行测试
 
 修改Manjaro的网卡配置，使用DHCP，成功获取到了IP地址
 
@@ -250,13 +248,13 @@ AdGuard Home上的DHCP服务器还处于测试阶段，在配置过程中还是�
 
 {% asset_img 39.png adguard 22 %}
 
-#### 总结
+## 总结
 
 ---
 
 解决了DNS和DHCP问题，Linux软路由已经可以正常使用了，当然，距离挂梯子还有一段路要走，希望大家在看了我的笔记之后能有所启发，如果能留言交流将更加好，好了，我们下期再见
 
-### 历史记录
+## 历史记录
 
 ---
 
@@ -264,3 +262,4 @@ AdGuard Home上的DHCP服务器还处于测试阶段，在配置过程中还是�
 * **2019.07.29** 完成dnsmasq配置部分
 * **2019.08.01** 完成AdGuard Home配置
 * **2019.08.19** 增加AdGuard Home视频说明部分
+* **2019.09.10** 格式调整

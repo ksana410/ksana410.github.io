@@ -13,6 +13,12 @@ date: 2019-08-29 22:33:34
 
 <!-- more -->
 
+## 视频说明
+
+---
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OmjU_P3h1dQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Pi-hole是什么
 
 ---
@@ -251,3 +257,4 @@ rm adblock.unsorted adblock.sorted
 
 * **2019.08.29** 建立初稿
 * **2019.09.04** 完成内容
+* **2019.09.10** 增加视频说明

@@ -5,9 +5,7 @@ tags:
   - Linux
 ---
 
-## Linux路由补完计划02 Debian安装及配置基础路由功能
-
-### 前言
+## 前言
 
 ---
 
@@ -15,7 +13,7 @@ tags:
 
 <!-- more -->
 
-### 视频说明
+## 视频说明
 
 ---
 
@@ -25,7 +23,7 @@ tags:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/bRMD029150U" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-### 功能说明
+## 功能说明
 
 ---
 
@@ -36,7 +34,7 @@ tags:
 * 网卡配置，内外网划分；
 * 开启转发，实现基础路由功能；
 
-### 需要的工具
+## 需要的工具
 
 ---
 
@@ -45,11 +43,11 @@ tags:
 * SSH工具（如果是Win10的话可能只需要一个CMD即可）
 * 一个梯子
 
-### 开始折腾
+## 开始折腾
 
 ---
 
-#### 下载Debian镜像
+### 下载Debian镜像
 
 ---
 
@@ -73,7 +71,7 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 当然，如果你懒得自己去找下载地址，我也会提供相应的下载链接（方便大家一下吧！）：
 
-##### Debian9.9.0 下载链接
+#### Debian9.9.0 下载链接
 
 > 如果通过多线程下载软件如[IDM](https://www.internetdownloadmanager.com/)依然速度不理想的话，建议还是通过[BT](https://zh.wikipedia.org/wiki/BitTorrent_(%E5%8D%8F%E8%AE%AE))下载比较好
 
@@ -88,7 +86,7 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 |64|[iso-cd](http://cdimage.debian.org/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-netinst.iso)|
 |64|[iso-dvd1](http://cdimage.debian.org/cdimage/archive/9.9.0/amd64/iso-dvd/debian-9.9.0-amd64-DVD-1.iso)/[iso-dvd2](http://cdimage.debian.org/cdimage/archive/9.9.0/amd64/iso-dvd/debian-9.9.0-amd64-DVD-2.iso)/[iso-dvd3](http://cdimage.debian.org/cdimage/archive/9.9.0/amd64/iso-dvd/debian-9.9.0-amd64-DVD-3.iso)|
 
-#### ESXI配置虚拟机
+### ESXI配置虚拟机
 
 ---
 
@@ -96,17 +94,17 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 那就开始吧！
 
-##### 上传镜像
+#### 上传镜像
 
 将下载好的镜像上传至ESXI的内部存储中，等会安装虚拟机需要用到的；
 
-##### 配置网络
+#### 配置网络
 
 家里原有的网络结构暂时不想改变，利用ESXI的虚拟网卡，这次我新建一个网络，在这个网络中进行调试，不影响我原有的网络结构；
 
 网络结构及网段划分
 
-###### ROS----172.16.1.0/24----Linux Router----192.168.100.0/24----Manjaro
+##### ROS----172.16.1.0/24----Linux Router----192.168.100.0/24----Manjaro
 
 > 家中的主路由是RouterOS，内网网段是172.16.1.0/24，计划将这台Linux Router的WAN口配置为172.16.1.50/24，LAN口配置为192.168.100.1/24，连接在LAN的设备所处网段是192.168.100.0/24，我将利用上次做演示的Manjaro做接入，到时候看看效果如何。
 
@@ -139,7 +137,7 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 至此新的网络的配置就完成了。
 
-##### 新建虚拟机
+#### 新建虚拟机
 
 * 新建虚拟机，由于我使用的是6.0版本，ESXI上没有Debian9的虚拟机类型，那就选择Debian8吧，问题不大
 
@@ -167,7 +165,7 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 > 至此虚拟机的前期配置就搞了，如果使用6.5或者6.7版本的ESXI，在网页上配置基本上也类似
 
-##### 安装虚拟机
+#### 安装虚拟机
 
 在ESXI中安装虚拟机应该不难，Debian9的安装也很简单，大致上过去在Hyper-V上安装Ubuntu一样，为了节省时间，我就直接忽略这部分了（希望大家不要打我），只不过为了有效利用256M的内存，需要在组件选择的时候稍微调整一下，如下图所示：
 
@@ -175,11 +173,11 @@ Debian老版本下载网站请点击[这里](http://cdimage.debian.org/cdimage/a
 
 > 需要取消掉桌面环境和打印服务组件，启用ssh服务，桌面的环境肯定会消耗不小的性能，而打印机我觉得作为二级路由暂时还用不到，用不到就不浪费空间来安装了，然后启用SSH的话就可以远程进行管理了
 
-#### 正式配置
+### 正式配置
 
 ---
 
-##### 1.安装Open-vm-tool组件
+#### 1.安装Open-vm-tool组件
 
 安装Open-vm-tool之后会比较方便的进行虚拟机开关机和重启，安装也很简单
 
@@ -213,7 +211,7 @@ ls
 {% asset_img 31.png configure debian 06 %}
 {% asset_img 32.png configure debian 07 %}
 
-##### 2.安装基础软件及配置环境
+#### 2.安装基础软件及配置环境
 
 > 此处安装的软件并不是必须的，但可以提升Linux的操作便利性（**只用命令行还谈什么便利性**），我一般会执行这样的命令
 
@@ -233,7 +231,7 @@ ls
 
 这些内容主要是让文件进行彩色显示，同时设置一些快捷命令，比如“ll”就相当于执行了“ls -l”，有兴趣的可以对比一下这些命令的差异，保存并退出之后，执行 `source ~/.bashrc` 即可应用上面的那些修改
 
-##### 3.修改SSH用密码登录
+#### 3.修改SSH用密码登录
 
 如果要使用SSH登陆的话需要修改一下SSH的配置文件，此处执行 `vi /etc/ssh/sshd.config` ，找到这个位置
 
@@ -245,7 +243,7 @@ ls
 
 之后执行 `systemctl restart sshd` 重启一下服务就可以应用修改了
 
-##### 4.配置网卡地址
+#### 4.配置网卡地址
 
 按照原定的计划，虚拟机的两张网卡分别配置成WAN口和LAN口，此处执行 `ip a` 查看网卡名，**ens192** 将作为WAN口， **ens224** 作为LAN口
 
@@ -263,7 +261,7 @@ ls
 
 {% asset_img 43.png configure debian 16 %}
 
-##### 5.开启转发并配置iptables
+#### 5.开启转发并配置iptables
 
 > Linux如果要成为一台路由器，必须先开启转发的功能
 
@@ -311,7 +309,7 @@ iptables -P FORWARD DROP
 
 配置完上述命令之后，路由功能基本上就实现了
 
-##### 6.实测
+#### 6.实测
 
 口说无凭，还是拿出点证据来吧！我这次就用上次演示的Manjaro虚拟机吧，修改网络连接，使用最新建立的那个网卡
 
@@ -333,7 +331,7 @@ iptables -P FORWARD DROP
 
 右侧显示的是 **ens224** 的流量信息，看1080P的视频一点问题都没有（原谅我Manjaro的性能有点差，4K是跑不动了）
 
-##### 7.iptables规则固化
+#### 7.iptables规则固化
 
 Debian的iptables不会开机启动，如果不进行一些操作的话，一重启一开始配置的iptables规则就会失效，路由功能就废了，为了解决这个问题，需要在开机的时候就加载iptables规则
 
@@ -372,7 +370,7 @@ Debian的iptables不会开机启动，如果不进行一些操作的话，一重
 
 以上的操作即可在系统重启时自动保存iptables规则，并开机加载
 
-### 更新历史
+## 更新历史
 
 ---
 
@@ -381,3 +379,4 @@ Debian的iptables不会开机启动，如果不进行一些操作的话，一重
 * **2019.07.28** 增加重启后加载iptables的方法
 * **2019.07.29** 修正部分错误
 * **2019.08.11** 嵌入视频说明
+* **2019.09.10** 格式调整
