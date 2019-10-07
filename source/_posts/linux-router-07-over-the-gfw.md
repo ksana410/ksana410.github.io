@@ -413,8 +413,6 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 
 在上述的配置文件中我增加了一个log模块，主要是为了进行故障分析，在`/var/log/v2ray`目录下生成两个日志文件，方便遇到问题之后进行分析，整个配置文件除了科学上网部分没有配置外，其它都能实际使用，这个部分是可以当作模板进行使用的
 
-当把配置文件修改好之后，记得检测一下文件格式是否问题，如果没问题，直接保存退出，之后执行`systemctl restart v2ray`重启服务即可
-
 当然使用vim进行文本编辑的话对于普通用户而言实在是太痛苦了，那不妨把它拷贝下来在本地计算机上面进行编辑，我使用的是windows平台上最好的文本编辑器之一的[Visual Studio Code](https://code.visualstudio.com/)，首先先把配置文件下载到本地：
 
 {% asset_img 18.png v2 07 %}
@@ -423,7 +421,23 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 
 {% asset_img 17.png v2 08 %}
 
-如果没有使用上述工具的话，使用[winscp](https://winscp.net/eng/index.php)也是可以的，或者如果是windows 10操作系统的话，直接使用内置的scp命令也是可以将文件下载到本地的
+如果没有使用上述工具的话，使用[winscp](https://winscp.net/eng/index.php)也是可以的，或者如果是windows 10操作系统的话，直接使用内置的scp命令也是可以将文件下载到本地的，打开powershell或者cmd，执行`scp root@172.16.1.50:/etc/v2ray/config.json d:\desktop\config.json.v2`，这样就复制到我的桌面了
+
+{% asset_img 25.png v2 09 %}
+
+之后就用**visual studio code**进行编辑，由于我下载下来的时候修改了文件名，在后面加上了一个v2后缀（这一步并不是必须的，如果直接下载下了json后缀的，就不需要以下步骤）
+
+{% asset_img 26.png v2 10 %}
+{% asset_img 27.png v2 11 %}
+{% asset_img 28.png v2 12 %}
+
+修改好配置文件之后就可以上传到服务器了，使用scp的话顺序改一下就好
+
+{% asset_img 30.png v2 13 %}
+
+`cat /etc/v2ray/config.json.v2 > /etc/v2ray/config.json`即可
+
+当把配置文件修改好之后，记得检测一下文件格式是否有问题，如果没问题，直接保存退出（如果使用vistual studio code进行编辑的话，基本上不会有多少问题），之后执行`systemctl restart v2ray`重启服务即可
 
 ### 5.配置防火墙规则
 
