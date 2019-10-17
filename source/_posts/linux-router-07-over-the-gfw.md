@@ -212,9 +212,6 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
         "wsSettings": {
           "connectionReuse": true,
           "path": "/ray"                        //当访问这个目录的时候使用websocket连接
-        },
-        "sockopt": {
-          "mark": 1000                          //对从这个出口流出的流量进行标记
         }
       },
       "tag": "proxy"                            //给这个出口加个标签
@@ -269,8 +266,7 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
       {
         "type": "field",
         "domain": [
-          "geosite:cn",                         //匹配国内的域名
-          "geosite:geolocation-!cn"             //匹配常见的非国内域名
+          "geosite:cn"                         //匹配国内的域名
         ],
         "outboundTag": "direct"                 //满足这个规则的网址直连不做操作
       },
@@ -345,9 +341,6 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
         "wsSettings": {
           "connectionReuse": true,
           "path": "/ray"
-        },
-        "sockopt": {
-          "mark": 1000
         }
       },
       "tag": "proxy"
@@ -355,21 +348,11 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
     {
       "protocol": "freedom",
       "settings": {},
-      "streamSettings": {
-        "sockopt": {
-          "mark": 1001
-        }
-      },
       "tag": "direct"
     },
     {
       "protocol": "blackhole",
       "settings": {},
-      "streamSettings": {
-        "sockopt": {
-          "mark": 1002
-        }
-      },
       "tag": "blocked"
     }
   ],
@@ -393,8 +376,7 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
       {
         "type": "field",
         "domain": [
-          "geosite:cn",
-          "geosite:geolocation-!cn"
+          "geosite:cn"
         ],
         "outboundTag": "direct"
       },
@@ -413,7 +395,7 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 
 在上述的配置文件中我增加了一个log模块，主要是为了进行故障分析，在`/var/log/v2ray`目录下生成两个日志文件，方便遇到问题之后进行分析，整个配置文件除了科学上网部分没有配置外，其它都能实际使用，这个部分是可以当作模板进行使用的
 
-当然使用vim进行文本编辑的话对于普通用户而言实在是太痛苦了，那不妨把它拷贝下来在本地计算机上面进行编辑，我使用的是windows平台上最好的文本编辑器之一的[Visual Studio Code](https://code.visualstudio.com/)，首先先把配置文件下载到本地：
+当然使用vim进行文本编辑的话对于普通用户而言实在是太痛苦了，那不妨把它拷贝下来在本地计算机上面进行编辑，我使用的是windows平台上最好的文本编辑器之一的[vscode](https://code.visualstudio.com/)，首先先把配置文件下载到本地：
 
 {% asset_img 18.png v2 07 %}
 
@@ -425,7 +407,7 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 
 {% asset_img 25.png v2 09 %}
 
-之后就用**visual studio code**进行编辑，由于我下载下来的时候修改了文件名，在后面加上了一个v2后缀（这一步并不是必须的，如果直接下载下了json后缀的，就不需要以下步骤）
+之后就用**vscode**进行编辑，由于我下载下来的时候修改了文件名，在后面加上了一个v2后缀（这一步并不是必须的，如果直接下载下了json后缀的，就不需要以下步骤）
 
 {% asset_img 26.png v2 10 %}
 {% asset_img 27.png v2 11 %}
@@ -437,7 +419,7 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 
 `cat /etc/v2ray/config.json.v2 > /etc/v2ray/config.json`即可
 
-当把配置文件修改好之后，记得检测一下文件格式是否有问题，如果没问题，直接保存退出（如果使用vistual studio code进行编辑的话，基本上不会有多少问题），之后执行`systemctl restart v2ray`重启服务即可
+当把配置文件修改好之后，记得检测一下文件格式是否有问题，执行命令`/usr/bin/v2ray/v2ray --test /etc/v2ray/config.json`如果没问题，直接保存退出（如果使用vscode进行编辑的话，基本上不会有多少问题），之后执行`systemctl restart v2ray`重启服务即可
 
 ### 5.配置防火墙规则
 
@@ -445,19 +427,26 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 
 ```shell
 # 先对tcp动手（不知道tcp是啥玩意的也不用在意，照着做就是了）
+# 新建一条叫做v2的新链
 iptables -t nat -N v2
+# 忽略掉远程服务器的地址，避免出现环回
+iptables -t nat -A v2 -d vps地址 -j RETURN
+# 排除掉内网地址，防止访问局域网地址的时候也被代理
+iptables -t nat -A v2 -d 0.0.0.0/8 -j RETURN
+iptables -t nat -A v2 -d 10.0.0.0/8 -j RETURN
+iptables -t nat -A v2 -d 127.0.0.0/8 -j RETURN
+iptables -t nat -A v2 -d 169.254.0.0/16 -j RETURN
+iptables -t nat -A v2 -d 172.16.0.0/12 -j RETURN
 iptables -t nat -A v2 -d 192.168.0.0/16 -j RETURN
-iptables -t nat -A v2 -p tcp -m mark --mark 0x3e8 -j RETURNc
+iptables -t nat -A v2 -d 224.0.0.0/4 -j RETURN
+iptables -t nat -A v2 -d 240.0.0.0/4 -j RETURN
+# 除已经被排除的地址，其它的全部交给V2ray进行处理，此处全部转发到了10000端口
 iptables -t nat -A v2 -p tcp -j REDIRECT --to-ports 10000
+# 这一句会将系统接受到的所有不是本机为地址的数据全部转发到v2链
 iptables -t nat -A PREROUTING -p tcp -j v2
-iptables -A OUTPUT -p tcp -j v2
-# 如果需要，也可以对udp动手（游戏玩家这个还是有点必要的，但V2Ray的vmess协议可能会让你失望，游戏转发还欠点火候）
-ip rule add fwmark 1 table 100
-ip route add local 0.0.0.0/0 dev lo table 100
-iptables -t mangle -N v2_udp
-iptables -t mangle -A v2_udp -d 192.168.0.0/16 -j RETURN
-iptables -t mangle -A v2_udp -p udp -j TPROXY --on-port 10000 --tproxy-mark 1
-iptables -t mangle -A PREROUTING -p udp -j v2_udp
+# 这句可选，如果希望软路由本身也可以科学上网，那就加上这句吧！
+iptables -t nat -A OUTPUT -p tcp -j v2
+# 最终我放弃了对UDP协议的代理，在实际的上网过程中需要用到UDP的机会并不多，主要是游戏部分，但很不幸的V2Ray对于游戏的支持并不是很好，甚至说很差
 ```
 
 执行上述命令之后呢，墙是什么？快去愉快的上网吧
@@ -484,22 +473,15 @@ iptables -t mangle -A PREROUTING -p udp -j v2_udp
 
 > 要测试其实很简单，打开一台电脑，通过自建的软路由上网，看看能不能科学上网就可以判断出来了
 
-此处我依然使用我一直使用的manjrao进行测试，打开火狐，打开谷歌等不存在的网站，看看能否正常打开，然后再放个youtube看是否可以正常播放，如果没问题的话那就说明你配置成功了，接下来该准备点香槟庆祝一下了
+此处我依然使用我一直使用的manjrao进行测试，打开火狐，打开谷歌等不存在的网站，看看能否正常打开，然后再放个youtube看是否可以正常播放，如果没问题的话那就说明你配置成功了，接下来该干嘛干嘛了，世界离你就差延时那点距离了
 
 ## 规则的自动加载
 
 ---
 
-防火墙规则过去在网卡的开关过程中就能自动进行保存和加载，此处要实现的是一些路由规则的自动加载，加载方法也很简单
+防火墙规则过去在网卡的开关过程中就能自动进行保存和加载，如果怕防火墙规则丢失的话，建议手动保存一下防火墙规则
 
-进入`/etc/network/interfaces.d/`目录下，新建一个配置文件，此处就叫'rule'吧，然后编辑它，输入如下内容:
-
-```shell
-ip rule add fwmark 1 table 100
-ip route add local 0.0.0.0/0 dev lo table 100
-```
-
-之后就可以保存退出了，这两句会修改系统的默认路由规则，如果你不需要代理udp流量的话就可以不进行上述操作，操作完成之后就可以开机自动加载这些规则了
+`iptables-save > /root/iptables.rule`就可以了，这样开机就会自动加载了，当然你如果搞错了防火墙的输入顺序就会悲剧了
 
 ## 总结
 
@@ -507,9 +489,12 @@ ip route add local 0.0.0.0/0 dev lo table 100
 
 本篇内容中涉及到了比较多的V2Ray配置文件实例，虽然看上去很多，但并没有深入去分析每一个语句的作用，大家看看就好，直接使用最后的实例即可，如果想要深入的了解的话，我会在下篇做出比较详细的分析，先劝个退，不认真学习的话真的会搞不懂的哦，越看越迷糊都有可能哦！
 
+对比两年前初次使用V2Ray，感觉官方文档完善了好多，但依然有很多坑需要去解决，下期预告，对于配置文件的详细分析（希望自己的拖延症不会像这次那么严重）！
+
 ## 历史
 
 ---
 
 * **2019.09.16** 初稿
 * **2019.09.25** 根据测试结构完善大纲
+* **2019.10.18** 磨磨蹭蹭的把坑填上，应该是可以上线了
