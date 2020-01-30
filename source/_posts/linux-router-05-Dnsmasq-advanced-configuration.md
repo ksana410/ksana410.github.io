@@ -40,7 +40,7 @@ dnsmasq如果要作为一个DNS服务器存在，必须添加上级服务器，�
 
 {% asset_img 01.png dnsmasq 01 %}
 
-为啥需要两个服务器呢，原因主要是dnsmasq可以提供缓存功能，而没有污染的DNSCrypt-Proxy需要解析地址的话延迟感人，如果每一次都交由它来进行解析的话那体验真心难受，在[Linux路由补完计划3](https://youtu.be/Aez-j5dENaU)中的翻车现场就是因为DoH服务延迟太高造成的，所以在本地提供一个缓存可以弥补高延迟所带来的问题，同时也可以利用dnsmasq的一些其它的功能
+为啥需要两个服务呢，原因主要是dnsmasq可以提供缓存功能，而没有污染的DNSCrypt-Proxy用来解析地址的话延迟感人，如果每一次都交由它来进行解析的话那体验真心难受，在[Linux路由补完计划3](https://youtu.be/Aez-j5dENaU)中的翻车现场就是因为DoH服务延迟太高造成的，所以在本地建立一个缓存可以弥补高延迟所带来的问题，同时也可以利用dnsmasq的一些其它的功能
 
 #### 安装DNSCrypt-Proxy
 
@@ -88,7 +88,7 @@ vi dnscrypt-proxy.toml
 
 由于dnsmasq作为主服务器已经占用了53端口，为了避免程序出错，此处修改为5353，同时由于ipv6还没有在本项目中实施，所以也删除ipv6监听端口，修改完之后是这样的
 
-{% asset_img 06.png dnsmasq 05 % }
+{% asset_img 06.png dnsmasq 05 %}
 
 保存并退出，继续执行下述的操作
 
@@ -187,3 +187,4 @@ ln -s /opt/dnsmasq-china-list/bogus-nxdomain.china.conf /etc/dnsmasq.d/bogus-nxd
 * **2019.08.23** 添加内容
 * **2019.08.25** 完成正文
 * **2019.09.10** 添加视频说明
+* **2020.01.30** 修正部分错误
