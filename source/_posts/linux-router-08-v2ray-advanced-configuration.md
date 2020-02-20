@@ -99,9 +99,11 @@ TLS和TLS+WebSocket通信都是TLS，前者是将V2Ray模拟成一个web服务�
 
 ### outbounds
 
-出站连接配置，数据的出入取决于v2ray是作为服务端还是作为客户端，一般情况下inbounds和outbounds上的协议都是通用的，此处有几个特例，透明代理、mtpto
+出站连接配置，数据的出入取决于v2ray是作为服务端还是作为客户端，一般情况下inbounds和outbounds上的协议都是通用的，此处有几个特例，[透明代理](https://www.v2ray.com/chapter_02/protocols/dokodemo.html)、[MTProto](https://www.v2ray.com/chapter_02/protocols/mtproto.html)
 
 ### DNS
+
+v2ray内置的DNS模块，可以基于策略对域名进行解析，不仅可以解析，也可以进行屏蔽或者自定义解析结果，这个功能模块一定程度上可以代替本地的DNS功能，如果配置好的话可以为局域网提供一个免污染的DNS服务
 
 ### routing
 
