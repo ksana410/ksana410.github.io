@@ -1,6 +1,12 @@
 ---
-title: linux router 09 make a vpn with wireguard
+title: Linux路由补完计划9 通过wireguard建立对外VPN
 tags:
   - Linux
 date: 2020-01-14 00:44:40
 ---
+
+## 前言
+
+---
+
+梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！
