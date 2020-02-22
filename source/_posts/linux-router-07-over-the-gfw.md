@@ -117,6 +117,18 @@ V2Ray的默认配置文件是`/etc/v2ray/config.json`，如果使用的是一键
 }
 ```
 
+|log|inbounds|outbounds|dns|routing|
+|:------:|:------:|:------:|:------:|:------:|
+|loglevel|socks|socks|hosts|domain|
+||http|http|servers|ip|
+||vmess|vmess||network|
+||MTProto|freedom||port|
+||shadowsocks|shadowsocks||inboundTag|
+||dokodemo-door|blackhole||source|
+|||||user|
+|||||protocol|
+|||||attrs|
+
 根据官方教程，整个配置文件应该由如下几个部分构成，但这些部分都是可以精简的，但有几个部分是必须的，如果是服务端的话，**inbounds**、**outbounds**、**routing**这三个部分是必要的；而如果是客户端的话，一般会多一个**dns**模块提供域名解析的支持，当然如果你对配置文件比较熟悉的话，可以通过增加更多的模块实现更多的功能，完整的结构如下：
 
 {% asset_img 10.png v2 06 %}
