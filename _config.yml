@@ -90,3 +90,6 @@ search:
   format: html
   limit: 10000
 
+  # raphael:   # optional, the source url of raphael.js
+  # flowchart: # optional, the source url of flowchart.js
+  options: # options used for `drawSVG`
