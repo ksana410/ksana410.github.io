@@ -49,7 +49,7 @@ vmess协议的认证基于时间，所以服务端和客户端之间的时间差
 
 生成UUID的方法很简单，最早官方推荐使用这个网站[UUID Generator](https://www.uuidgenerator.net/)进行生成，打开就会自动生成一个新的，复制粘贴一下就可以了；现在也可以直接使用Linux命令进行生成：
 
-> `cat /proc/sys/kernel/random/uuid`或者`/usr/bin/v2ray/v2ctl uuid`（这个命令需要v2ray已经正确安装）
+> `cat /proc/sys/kernel/random/uuid`或者`/usr/bin/v2ray/v2ctl uuid` **（这个命令需要v2ray已经正确安装）**
 
 ### 加密
 
@@ -63,7 +63,7 @@ vmess协议可以设定不同的加密方式，主要由客户端发起协商，
 
 * none
 
-我个人觉得并没有必要，反正都是未知流量，是否进行重新加密对于翻墙效果并没有啥实质性的变化，反而会增加一点服务器开销，也不用担心vmess的安全性，本身它自己也是加密的，多重加密好像是一件吃力不讨好的事情，当然再加个密会让人心理上稍微得到点安慰吧！
+我个人觉得并没有必要，反正都是未知流量，如果配合tls使用的话，tls本身也会对数据流进行加密，是否进行重新加密对于翻墙效果并没有啥实质性的变化，反而会增加一点服务器开销，也不用担心vmess的安全性，本身它自己也是加密的，多重加密好像是一件吃力不讨好的事情，当然再加个密会让人心理上稍微得到点安慰吧！
 
 ### 针对vmess协议的扩展
 
@@ -91,7 +91,23 @@ TLS和TLS+WebSocket通信都是TLS，前者是将V2Ray模拟成一个web服务�
 
 ## v2ray功能模块
 
-> v2ray以现在的功能来说已经类似于一个小型系统了，对数据的出入和路由选择都能进行调整，而这些功能的实现离不开v2ray的内置功能模块的配合
+> v2ray以现在的功能来说已经类似于一个小型系统了，对数据的出入和路由选择都能进行调整，而这些功能的实现离不开v2ray的内置功能模块的配合，具体的构成可参考下图所示
+
+|log|inbounds|outbounds|dns|routing|
+|:------:|:------:|:------:|:------:|:------:|
+|loglevel|socks|socks|hosts|domain|
+||http|http|servers|ip|
+||vmess|vmess||network|
+||MTProto|freedom||port|
+||shadowsocks|shadowsocks||inboundTag|
+||dokodemo-door|blackhole||source|
+|||||user|
+|||||protocol|
+|||||attrs|
+
+### log
+
+设置v2ray启用日志功能，如果你用不到这个的话也没有必要加上，当然启用其会比较方便的查找问题，并不是必须的
 
 ### inbounds
 
@@ -106,8 +122,6 @@ TLS和TLS+WebSocket通信都是TLS，前者是将V2Ray模拟成一个web服务�
 v2ray内置的DNS模块，可以基于策略对域名进行解析，不仅可以解析，也可以进行屏蔽或者自定义解析结果，这个功能模块一定程度上可以代替本地的DNS功能，如果配置好的话可以为局域网提供一个免污染的DNS服务
 
 ### routing
-
-### log
 
 ## 历史
 
