@@ -53,7 +53,7 @@ tags:
 | 处理器核心数 | 2 | 2 | 2 |
 | 内存大小 | 1G | 256M | 128M |
 | 梯子应用 | shadowsocks | v2ray | v2ray/clash |
-| 防火墙 | iptables | iptables | iptables |
+| 防火墙 | iptables | iptables | nftables |
 | 广告过滤 | none | pihole | Adguard-home |
 | DNS防污染 | ss-tunnel | dnscrypt-proxy | Adguard-home |
 | 附加功能 | none | kms\frpc\wireguard\netdata | ipxe\iscsi\upnp |
@@ -75,8 +75,8 @@ tags:
 
 ### 进阶
 
-* [ ] Linux路由补完计划04 利用DNS进行广告过滤
-* [ ] Linux路由补完计划05 DNS防污染
+* [x] Linux路由补完计划04 利用DNS进行广告过滤
+* [x] Linux路由补完计划05 DNS防污染
 * [ ] Linux路由补完计划06 透明代理搭建——V2ray篇
 * [ ] Linux路由补完计划07 透明代理搭建——Shadowsocks篇
 * [ ] Linux路由补完计划08 利用二级路由搭建Wireguard VPN
@@ -86,7 +86,6 @@ tags:
 * [ ] Linux路由补完计划09 LVM磁盘扩容
 * [ ] Linux路由补完计划10 搭建文件共享
 * [ ] Linux路由补完计划11 ipxe无盘系统
-…………
 
 ---
 
