@@ -37,12 +37,14 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 5.支持身份认证
 6.多平台支持
 7.与Docker和Kubernetes集成
+8.原生跨平台支持，包括ARMHF和ARM64架构
+9.除HTTP(s)以外，还支持在隧道内传输Websocket流量
 
 * 计划功能支持：
 
 1.自动配置DNS/A记录
-2.隧道websocket流量以及HTTP(S)
-3.发现并配置Kubernetes Ingress定义的端点
+2.基于 Azure ACI 和 AWS Fargate，以 Serverless 容器的方式运行「出口节点」。
+3.通过 DNS01 challenge 使用 LetsEncrypt Staging 或 Production 签发证
 ...
 
 虽然此时可以穿透的协议还只局限于HTTP或者HTTPS?，但作者还是愿意在今后的更新中添加对纯TCP流量的支持；未来肯定会越来越美好，有能力的小伙伴不妨也为其提供自己的一份力量
@@ -68,7 +70,7 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 
 客户端和服务端之间通信：
 
-本地应用端口 <==http==> inlets(client) <==ws(s)==> inlets(server) <==http(s)==> 浏览器
+本地应用端口 <==http(s)/ws(s)==> inlets(client) <==ws(s)==> inlets(server) <==http(s)==> 用户浏览器
 
 ## 实例
 
@@ -82,15 +84,23 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 
 ### 先决条件
 
-* 需要拥有一台拥有公网IP的主机，如果主机在国内，还需要解决备案的问题，80端口和443端口开放
+* 需要拥有一台拥有公网IP的主机，如果主机在国内，并且还需要开放80端口和443端口，还需要解决备案的问题
 * 拥有一个域名，并且可以随意修改DNS解析，免费的，收费的都可以
 * 耐心很重要，由于涉及到两台主机的操作，暂时还没有一键脚本可以使用
-* 服务端和客户端只能使用64位的系统
+* 服务端和客户端只能使用64位的系统，当然现在也已经支持arm架构的硬件设备进行安装了
+
+### 实验环境
+
+* 域名：etspace.xyz
+* 服务器公网ip：
+* 本地客户端主机：
+* 需要对外发布的服务：群晖登录界面及netdata状态界面
 
 #### 配置DNS解析
 
-vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DNS管理后台，修改域名的解析地址，我使用的是[he.net](htt
-ps://he.net)，此时进入后台，添加相应的解析记录
+vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DNS管理后台，修改域名的解析地址，我使用的是[he.net](https://he.net)，此时进入后台，添加相应的解析记录
+
+此处需要设置三个解析记录，作为主服务的inlets.etproxy.xyz、群晖登录地址qh.etspace.xyz、netdata状态地址：netdata.etspace.xyz，全部是A记录
 
 #### 服务端上inlets的安装和配置
 
@@ -98,7 +108,7 @@ ps://he.net)，此时进入后台，添加相应的解析记录
 
 由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了
 
-此处作者新增了一个工具[inletsctl](https://github.com/inlets/inletsctl)，可以通过这个工具进行更新及配置，一般情况我使用它来进行intels的安装，有了它更新的活也方便了很多
+此处作者新增了一个工具[inletsctl](https://github.com/inlets/inletsctl)，可以通过这个工具进行更新及配置，一般情况我使用它来进行intels的安装，不再需要每次登录github进行下载更新了
 
 * 安装inletsctl
 
