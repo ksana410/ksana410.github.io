@@ -91,16 +91,24 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 
 ### 实验环境
 
+> 也许这就是我自己的瞎折腾，但是希望能给大家以启发
+
 * 域名：etspace.xyz
-* 服务器公网ip：
-* 本地客户端主机：
-* 需要对外发布的服务：群晖登录界面及netdata状态界面
+* 服务器公网ip：165.227.56.252
+* 本地客户端主机：[NanoPi NEO2](http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP)
+* 需要对外发布的服务：自用黑裙登录页面以及软路由netdata状态页
 
 #### 配置DNS解析
 
 vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DNS管理后台，修改域名的解析地址，我使用的是[he.net](https://he.net)，此时进入后台，添加相应的解析记录
 
-此处需要设置三个解析记录，作为主服务的inlets.etproxy.xyz、群晖登录地址qh.etspace.xyz、netdata状态地址：netdata.etspace.xyz，全部是A记录
+此处需要设置三个解析记录：
+
+|域名|解析类型|计划用途|
+|:------:|:------:|:------:|
+|inlets.etspace.xyz|A|用于主控制通信|
+|qh.etsapce.xyz|A|映射本地群晖登录界面|
+|netdata.etspace.xyz|A|映射本地netdata状态界面|
 
 #### 服务端上inlets的安装和配置
 
