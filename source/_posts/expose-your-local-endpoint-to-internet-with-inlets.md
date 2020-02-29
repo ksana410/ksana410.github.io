@@ -112,20 +112,118 @@ vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DN
 
 #### 服务端上inlets的安装和配置
 
-登陆vps，进行安装
-
 由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了
 
-此处作者新增了一个工具[inletsctl](https://github.com/inlets/inletsctl)，可以通过这个工具进行更新及配置，一般情况我使用它来进行intels的安装，不再需要每次登录github进行下载更新了
+* 安装inlets
 
-* 安装inletsctl
+官方一键命令`curl -sLS https://get.inlets.dev | sh`
 
+> 此处也可以使用作者新增了一个工具[inletsctl](https://github.com/inlets/inletsctl)，并且能通过这个工具进行更新及配置，一般情况我使用它来进行intels的安装，不再需要每次登录github进行下载更新了
+>
+> * 安装inletsctl
+> 
 > 使用官方命令一键安装`curl -sLSf https://inletsctl.inlets.dev | sh`
 此处图片----
+>
+> * 通过inletsctl 下载安装inlets
+>
+> `inletsctl download inlets`进行安装，inlets会被自动安装到`/usr/local/bin/`目录下，此时就可以适应inlets命令了
 
-* 通过inletsctl 下载安装inlets
+##### 在执行后续的操作之前，首先建议了解一下inlets的命令和参数
 
-`inletsctl download inlets`进行安装，inlets会被自动安装到`/usr/local/bin/`目录下
+> 通过help命令直接查看
+
+```shell
+inlets --help
+
+Inlets combines a reverse proxy and websocket tunnels to expose your internal
+and development endpoints to the public Internet via an exit-node.
+
+An exit-node may be a 5-10 USD VPS or any other computer with an IPv4 IP address.
+You can also use inlets to bridge connect between private networks.
+
+It is strongly recommended to put a reverse proxy with TLS/SSL enabled such as
+Nginx or Caddy in front of your inlets server to enable an encrypted tunnel.
+
+See: https://github.com/inlets/inlets for more information.
+
+Usage:
+  inlets [flags]
+  inlets [command]
+
+Available Commands:
+  client      Start the tunnel client.
+  help        Help about any command
+  server      Start the tunnel server.
+  version     Display the clients version information.
+
+Flags:
+  -h, --help   help for inlets
+
+Use "inlets [command] --help" for more information about a command.
+```
+
+```shell
+inlets server --help
+Start the tunnel server on a machine with a publicly-accessible IPv4 IP
+address such as a VPS.
+
+Example: inlets server -p 80
+Example: inlets server --port 80 --control-port 8080
+
+Note: You can pass the --token argument followed by a token value to both the
+server and client to prevent unauthorized connections to the tunnel.
+
+Usage:
+  inlets server [flags]
+
+Flags:
+  -c, --control-port int             control port for tunnel (default 8080)
+      --disable-transport-wrapping   disable wrapping the transport that removes CORS headers for example
+  -h, --help                         help for server
+  -p, --port int                     port for server and for tunnel (default 8000)
+      --print-token                  prints the token in server mode (default true)
+  -t, --token string                 token for authentication
+  -f, --token-from string            read the authentication token from a file
+```
+
+```shell
+inlets client --help
+
+Start the tunnel client.
+
+Example: inlets client --remote=192.168.0.101:80 --upstream=http://127.0.0.1:3000
+Note: You can pass the --token argument followed by a token value to both the server and client to prevent unauthorized connections to the tunnel.
+
+Usage:
+  inlets client [flags]
+
+Flags:
+  -h, --help                help for client
+      --print-token         prints the token in server mode (default true)
+  -r, --remote string       server address i.e. 127.0.0.1:8000 (default "127.0.0.1:8000")
+  -t, --token string        authentication token
+  -f, --token-from string   read the authentication token from a file
+  -u, --upstream string     upstream server i.e. http://127.0.0.1:3000
+```
+
+* 生成预共享密钥
+
+根据上述的帮助信息，需要注意 **-t/-f** 这两个参数，服务端和客户端之间需要一种方式来进行身份认证，谁都能接入那就不乱套了！此处使用预共享密钥来进行认证，`-t`参数对应一个字符串，`-f`参数对应一个文件，其实就是把密钥存储到一个文件里就行了
+
+基于项目的说明，直接使用系统的随机数进行生成即可，执行`echo $(head -c 16 /dev/urandom | shasum | cut -d" " -f1)`，所生产的那串字符就是密钥，你可以直接复制了用，或者存储成一个文件，那样下载到本地就可以给客户端使用了
+
+* 启动服务端进行连接测试
+
+直接在tmux中运行，执行命令`inlets server -t ssssss -p 8000`，然后快捷键`ctrl+b`然后按一下`d`就能将其切换到后台
+
+在本地的nanopi上也安装好inlets，测试连接一下服务端，执行：
+
+`inlets client -r 165.227.56.252:8000 -t ssss -u http://172.16.1.2:5000`
+
+> 这条命令的意思是inlets以客户端模式运行，远程连接地址是165.227.56.252，端口8000，密钥是ssss，映射本地的http://172.16.1.2:5000 这个地址
+
+此时在浏览器上输入165.227.56.252:8000就相当于访问本地的http://172.16.1.2:5000 ，此处是我群晖的登陆界面
 
 此处图片
 
@@ -138,3 +236,4 @@ vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DN
 * **2019.08.27** 建立初稿
 * **2019.11.30** 稍微更新点东西
 * **2020.02.22** 从冬眠中复苏，决定稍微写点什么
+* **2020.02.29** 还是要更新的
