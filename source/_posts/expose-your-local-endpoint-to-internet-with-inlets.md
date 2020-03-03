@@ -233,6 +233,27 @@ Flags:
 
 {% asset_img 02.png inlets 02 %}
 
+1.将inlets配置成服务并且开机启动
+
+其实就是写个开机脚本，直接在`/etc/systemd/system/`目录下新建`inlets.service`文件，写入如下内容
+
+```shell
+[Unit]
+Description=Inlets Server Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+StartLimitInterval=0
+ExecStart=/usr/local/bin/inlets server --port=8000 --token="${AUTHTOKEN}"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> 此处使用了一个变量`${AUTHTOKEN}`,这个指代的就是上面生成的那串密钥，本着偷懒的本性，我直接将其加入了系统变量export AUTHTOKEN=$()
 未完待续……
 
 ## 历史
