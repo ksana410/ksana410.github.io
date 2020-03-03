@@ -247,13 +247,28 @@ Type=simple
 Restart=always
 RestartSec=1
 StartLimitInterval=0
+EnvironmentFile=/etc/default/inlets
 ExecStart=/usr/local/bin/inlets server --port=8000 --token="${AUTHTOKEN}"
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-> 此处使用了一个变量`${AUTHTOKEN}`,这个指代的就是上面生成的那串密钥，本着偷懒的本性，我直接将其加入了系统变量export AUTHTOKEN=$()
+> * 此处使用了一个变量`${AUTHTOKEN}`,这个指代的就是上面生成的那串密钥，本着偷懒的本性，我直接将其加入了系统变量，那么如何加入进去呢？这就要使用这个启动脚本中所设定的变量文件`/etc/default/inlets`，直接执行`echo "export AUTHTOKEN=$(head -c 16 /dev/urandom | shasum | cut -d" " -f1)" > /etc/default/inlets`即可，不放心可以查看一下文件中的内容
+>
+> * 端口号可以看情况自己设定，如果不指定的话默认就是8000，但一定要和后续编写的caddyfile文件相同
+>
+> * 客户端的启动脚本也可以参照这样编写
+
+后续的工作就是设置允许开机启动，并且让inlets在后台运行
+
+```shell
+systemctl enable inlets
+systemctl start inlets
+```
+
+2.编写CaddyFile文件
+
 未完待续……
 
 ## 历史
