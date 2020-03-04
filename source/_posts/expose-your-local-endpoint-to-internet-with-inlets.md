@@ -247,7 +247,7 @@ Type=simple
 Restart=always
 RestartSec=1
 StartLimitInterval=0
-EnvironmentFile=/etc/default/inlets
+EnvironmentFile=/etc/default/inlets  #注意一下这条配置
 ExecStart=/usr/local/bin/inlets server --port=8000 --token="${AUTHTOKEN}"
 
 [Install]
@@ -268,6 +268,39 @@ systemctl start inlets
 ```
 
 2.编写CaddyFile文件
+
+> 之所以使用caddy完全是因为其两个优点：其一，配置简单；其二，可以自动申请证书，怎么使用我就不再赘述了，想要完全发挥它的功能，可以去查看[官方文档](https://caddyserver.com/v1/docs)，这里的所有配置主要针对inlets进行配置
+
+inlets的服务端和客户端之间是通过[websocket](https://zh.wikipedia.org/wiki/WebSocket)进行连接的，所以caddy在这里需要将这个连接转发到inlets上，同时还要监听客户端对目的网址的http或者https访问请求，同样需要将连接转发到inlets上，那么配置文件该怎么写呢？
+
+```txt
+inlets.etspace.xyz {
+  tls ddxiong0410@gmail.com
+  proxy / 127.0.0.1:8000 {
+    transparent
+  }
+  proxy /tunnel 127.0.0.1:8000 {
+    transparent
+    websocket
+  }
+}
+
+qh.etspace.xyz {
+  tls ddxiong0410@gmail.com
+  proxy / 127.0.0.1:8000 {
+    transparent
+  }
+}
+
+netdata.etspace.xyz {
+  tls ddxiong0410@gmail.com
+  proxy / 127.0.0.1:8000 {
+    transparent
+  }
+}
+```
+
+此处可以发现主控的域名下会比其它两个域名多了点内容，主要是需要将websocket的连接请求透明转发到inlets的监听端口上，而inlets默认的
 
 未完待续……
 
