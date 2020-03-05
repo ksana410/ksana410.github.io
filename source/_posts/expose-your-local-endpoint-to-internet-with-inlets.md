@@ -300,9 +300,64 @@ netdata.etspace.xyz {
 }
 ```
 
-此处可以发现主控的域名下会比其它两个域名多了点内容，主要是需要将websocket的连接请求透明转发到inlets的监听端口上，而inlets默认的
+此处可以发现主控的域名下会比其它两个域名多了点内容，主要是需要将websocket的连接请求透明转发到inlets的监听端口上，默认inlets客户端模式会通过websocket协议访问域名的/tunnel目录，当caddy接受到这样的连接请求是就会透明转发到inlets的8000端口上，然后服务端和客户端通过预共享密钥进行认证，之后的事情就顺理成章了～
 
-未完待续……
+主控域名只需要一个，它承载了客户端和服务端之间的主要的流量，其他设置的域名都想到于是内网对外映射的入口，按照需要进行添加和设置即可
+
+> 总体而言，inlets所需要的加密和对外连接主要需要一个主域名加上若干个服务域名构成（当然，如果只需要映射一个服务的话，主域名即可以当认证端又可以当映射入口，上述配置文件中<inlets.etspace.xyz>域名下所设置的两个**proxy**选项就是以此为目的设置的
+
+配置文件写好了，重启一下caddy，`systemctl restart caddy`，此时caddy会自动为配置文件中的三个域名申请[Let's Encrypt](https://letsencrypt.org/zh-cn/)证书，有了证书加持，用户访问这个入口的数据也会是加密的，提高一定的安全性
+
+* inlets客户端配置
+
+在本地的nanopi上编写启动文件，参照一下服务端的配置，个人使用的如下：
+
+```service
+[Unit]
+Description=Inlets Client Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+StartLimitInterval=0
+EnvironmentFile=/etc/default/inlets
+ExecStart=/usr/local/bin/inlets client --remote="${REMOTEHOST}" --token="${AUTHTOKEN}" --upstream="${UPSTREAM}"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+> inlets由服务端模式改成客户端模式，相应的参数也有一些变化，**token**的部分不变，多了**remote**和**upstream**，同样的，我依然会在变量文件中对他们进行设置，这样也是为了方便修改和重启
+
+直接编辑`/etc/default/inlets`文件，此时的内容如下：
+
+```shell
+export AUTHTOKEN=ssssss
+export REMOTEHOST=wss://inlets.etspace.xyz
+export UPSTREAM="qh.etspace.xyz=http://172.16.1.2:5000,netdata.etspace.xyz=http://172.16.1.10:1999"
+```
+
+> 由于证书的加入，客户端和服务端之间使用了加密通讯，那么协议类型就变成了wss，而映射的本地服务需要将域名和本地ip以及端口号一一对应，有多少个就加多少个，各个项目直接通过`,`隔开
+
+编辑完上述的文件后，就可以将inlets设置成开机启动，然后进行一下测试了
+
+```shell
+systemctl enable inlets
+systemctl start inlets
+systemctl status inlets
+```
+
+* 测试一下
+
+直接打开<https://qh.etspace.xyz>看看是什么样的，基本上就可以很顺利的在外面打开家里的群晖登录界面，<https://netdata.etspace.xyz>也一样，那么如果需要建立更多的映射，就按照这样的流程进行配置即可
+
+## 总结
+
+---
+
+inlets可能功能上没有Frp强，但却是一个很好玩的工具，对于一些只需要进行网页端控制的用户而言，不仅做到了对外映射，还能配合caddy进行证书加密，体验还是很不错的，端口复用，也不用担心会和v2ray这样的科学上网发生冲突，或者说，由于inlets的加入也有可能增加一定的混淆能力，毕竟访问这些域名所获取到的可是实打实的一些网站～
 
 ## 历史
 
@@ -312,3 +367,4 @@ netdata.etspace.xyz {
 * **2019.11.30** 稍微更新点东西
 * **2020.02.22** 从冬眠中复苏，决定稍微写点什么
 * **2020.02.29** 还是要更新的
+* **2020.03.06** 加上图片应该就完成了
