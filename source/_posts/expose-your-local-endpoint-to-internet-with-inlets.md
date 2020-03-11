@@ -233,7 +233,7 @@ Flags:
 
 {% asset_img 02.png inlets 02 %}
 
-1.将inlets配置成服务并且开机启动
+> 将inlets配置成服务并且开机启动
 
 其实就是写个开机脚本，直接在`/etc/systemd/system/`目录下新建`inlets.service`文件，写入如下内容
 
@@ -267,7 +267,7 @@ systemctl enable inlets
 systemctl start inlets
 ```
 
-2.编写CaddyFile文件
+* 编写CaddyFile文件
 
 > 之所以使用caddy完全是因为其两个优点：其一，配置简单；其二，可以自动申请证书，怎么使用我就不再赘述了，想要完全发挥它的功能，可以去查看[官方文档](https://caddyserver.com/v1/docs)，这里的所有配置主要针对inlets进行配置
 
