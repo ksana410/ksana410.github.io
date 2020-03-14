@@ -47,4 +47,14 @@ make -j 6 V=s
 
 make modules -j 6 V=s
 
-make
+make modules_install
+
+make install
+
+ls -l /boot/vmlinux*
+
+grubby --info=/boot/vmlinux-5.5.9
+
+grubby --default-index
+
+grubby --set-default=/boot/vmlinuz-4.18.0-147.5.1.el8_1.x86_64
