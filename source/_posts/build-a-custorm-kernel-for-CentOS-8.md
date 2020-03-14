@@ -30,3 +30,7 @@ CentOS 8发布一段时间了，我也想体会一下这个版本有啥新特性
 * 下载内核源码
 
 进入伟大的[kernel.org](https://www.kernel.org)
+
+yum install hmaccalc zlib-devel binutils-devel elfutils-libelf-devel
+
+yum install bc openssl-devel
