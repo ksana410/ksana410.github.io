@@ -34,3 +34,17 @@ CentOS 8发布一段时间了，我也想体会一下这个版本有啥新特性
 yum install hmaccalc zlib-devel binutils-devel elfutils-libelf-devel
 
 yum install bc openssl-devel
+
+cp /boot/config-4.18.0-147.5.1.el8_1.x86_64 ./.config
+
+yum groupinstall "development tools"
+
+yum install bc openssl-devel zlib-devel binutils-devel elfutils-libelf-devel ncurses-devel
+
+make menuconfig or make nconfig
+
+make -j 6 V=s
+
+make modules -j 6 V=s
+
+make
