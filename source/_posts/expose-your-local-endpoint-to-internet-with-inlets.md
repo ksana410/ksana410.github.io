@@ -94,8 +94,8 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 > 也许这就是我自己的瞎折腾，但是希望能给大家以启发
 
 * 域名：etspace.xyz
-* 服务器公网ip：165.227.56.252
-* 本地客户端主机：[NanoPi NEO2](http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP)
+* 服务器公网ip：~~165.227.56.252~~
+* 本地客户端主机：~~[NanoPi NEO2](http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP)~~
 * 需要对外发布的服务：自用黑裙登录页面以及软路由netdata状态页
 
 #### 配置DNS解析
