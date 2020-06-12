@@ -93,3 +93,10 @@ search:
   # raphael:   # optional, the source url of raphael.js
   # flowchart: # optional, the source url of flowchart.js
   options: # options used for `drawSVG`
+
+backup:
+  type: git
+  message: backup my blog
+  theme: next
+  repository:
+    github: git@github.com:ksana410/ksana410.github.io.git,hexo
