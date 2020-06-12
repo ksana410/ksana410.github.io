@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 上一篇中我简单说明了一下如何使用v2ray进行软路由透明代理的方法，利用v2ray的透明代理的功能，结合iptables数据转发实现了一个效果还不错的透明代理，连接了这台软路由的设备终于可以体验无缝的科学上网了，但我并没有详细的将v2ray的配置文件进行说明，我只是对所需要用到的配置内容进行了一下说明，并没有详细的将其中的注意点提取出来进行归类讲解，v2ray的配置相比于ss等工具而言，真的">
+<meta name="keywords" content="Linux">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划番外篇 v2ray配置文件详解">
+<meta property="og:url" content="https://ksana410.github.io/2019/10/19/linux-router-08-v2ray-advanced-configuration/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 上一篇中我简单说明了一下如何使用v2ray进行软路由透明代理的方法，利用v2ray的透明代理的功能，结合iptables数据转发实现了一个效果还不错的透明代理，连接了这台软路由的设备终于可以体验无缝的科学上网了，但我并没有详细的将v2ray的配置文件进行说明，我只是对所需要用到的配置内容进行了一下说明，并没有详细的将其中的注意点提取出来进行归类讲解，v2ray的配置相比于ss等工具而言，真的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-06-11T16:44:17.397Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux路由补完计划番外篇 v2ray配置文件详解">
+<meta name="twitter:description" content="前言 上一篇中我简单说明了一下如何使用v2ray进行软路由透明代理的方法，利用v2ray的透明代理的功能，结合iptables数据转发实现了一个效果还不错的透明代理，连接了这台软路由的设备终于可以体验无缝的科学上网了，但我并没有详细的将v2ray的配置文件进行说明，我只是对所需要用到的配置内容进行了一下说明，并没有详细的将其中的注意点提取出来进行归类讲解，v2ray的配置相比于ss等工具而言，真的">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/10/19/linux-router-08-v2ray-advanced-configuration/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划番外篇 v2ray配置文件详解 | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/10/19/linux-router-08-v2ray-advanced-configuration/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划番外篇 v2ray配置文件详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-10-19 23:51:15" itemprop="dateCreated datePublished" datetime="2019-10-19T23:51:15+00:00">2019-10-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-06-11 16:44:17" itemprop="dateModified" datetime="2020-06-11T16:44:17+00:00">2020-06-11</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>上一篇中我简单说明了一下如何使用v2ray进行软路由透明代理的方法，利用v2ray的透明代理的功能，结合iptables数据转发实现了一个效果还不错的透明代理，连接了这台软路由的设备终于可以体验无缝的科学上网了，但我并没有详细的将v2ray的配置文件进行说明，我只是对所需要用到的配置内容进行了一下说明，并没有详细的将其中的注意点提取出来进行归类讲解，v2ray的配置相比于ss等工具而言，真的会复杂很多，但相应的它所能提供的功能也会多一点，本篇将作为一个小笔记，记录我在进行v2ray配置中所遇到及所领悟到的一些心得和技巧，大家就随便看看，有不足的地方希望大家能够理解，毕竟这属于个人的理解，小白们能参考一下，大佬们也不要鄙视</p>
+<a id="more"></a>
+
+<h2 id="v2ray配置文件主体——json文件格式"><a href="#v2ray配置文件主体——json文件格式" class="headerlink" title="v2ray配置文件主体——json文件格式"></a>v2ray配置文件主体——<strong>json</strong>文件格式</h2><hr>
+<p>v2ray使用了<a href="https://zh.wikipedia.org/wiki/JSON" target="_blank" rel="noopener">json</a>作为其配置文件的数据格式，它源自于<a href="https://zh.wikipedia.org/wiki/JavaScript" target="_blank" rel="noopener">Javascript</a>，现在大部分编程语言都支持对json格式的数据文件进行生成和解析，ss的配置文件同样也使用json格式；能大致的了解json文件的编写方法对于后续的操作很有帮助，此处就稍微说明一下吧！</p>
+<ul>
+<li><p>并列的数据之间用逗号隔开</p>
+</li>
+<li><p>对象和数值直接用冒号隔开，并且中间需要添加一个空格</p>
+</li>
+<li><p>存储数据的集合（数组）时候用方括号表示</p>
+</li>
+<li><p>大括号保存数据对象</p>
+</li>
+</ul>
+<p>利用vscode类似的文本编辑工具会比较容易的实现格式规范，建议初学者以windows上的图形软件为主，vi这样的工具对于普通用户而言还是太高了</p>
+<h2 id="v2ray核心协议"><a href="#v2ray核心协议" class="headerlink" title="v2ray核心协议"></a>v2ray核心协议</h2><hr>
+<p>v2ray有属于自己的一款通信协议，那就是vmess，它是为了对抗墙深度包检测而研发的，是一种加密协议，v2ray服务端和客户端之间主要使用这个协议进行通信（当然shadowsocks协议也是支持的），但是现在墙已经有针对未知协议进行干扰的规则存在了，所以单纯用它你懂的</p>
+<h3 id="协议认证"><a href="#协议认证" class="headerlink" title="协议认证"></a>协议认证</h3><p>vmess协议的认证基于时间，所以服务端和客户端之间的时间差不要超过90秒，很多用户就是忽略了这一点造成v2ray不能正常的连接，有能力的建议在服务端上使用ntp定期进行时间同步，不用在乎时区，举个例子：</p>
+<p>假设服务器在日本，使用东九区的时间，而中国是东八区，那么两者之间时区相差1小时，不考虑时区就是不考虑这个时区的时间差，而是在时区差之外的时间差</p>
+<p>这个差值不能超过90，如果超过了就会认证失败，如果小伙伴连接不正常可以优先考虑一下是不是时间差过大</p>
+<h3 id="用户ID"><a href="#用户ID" class="headerlink" title="用户ID"></a>用户ID</h3><p>这个用户ID主要有两个作用，一个是用来区分用户，还有一个就类似于密码，使用的是UUID格式，很多用户会一脸蒙蔽，啥是UUID啊？我表示我也不懂，哈哈</p>
+<p>生成UUID的方法很简单，最早官方推荐使用这个网站<a href="https://www.uuidgenerator.net/" target="_blank" rel="noopener">UUID Generator</a>进行生成，打开就会自动生成一个新的，复制粘贴一下就可以了；现在也可以直接使用Linux命令进行生成：</p>
+<blockquote>
+<p><code>cat /proc/sys/kernel/random/uuid</code>或者<code>/usr/bin/v2ray/v2ctl uuid</code> <strong>（这个命令需要v2ray已经正确安装）</strong></p>
+</blockquote>
+<h3 id="加密"><a href="#加密" class="headerlink" title="加密"></a>加密</h3><p>vmess协议可以设定不同的加密方式，主要由客户端发起协商，然后服务端接收客户端的请求，然后使用要求的加密方式结合id来对vmess协议进行加密，不管是否加密，它对于墙而言都是未知流量，一样会进行操作，现在v2ray支持的加密方式有这么几种：</p>
+<ul>
+<li><p>aes-128-gcm</p>
+</li>
+<li><p>chacha20-poly1305</p>
+</li>
+<li><p>auto</p>
+</li>
+<li><p>none</p>
+</li>
+</ul>
+<blockquote>
+<p>我个人觉得并没有必要，反正都是未知流量，如果配合tls使用的话，tls本身也会对数据流进行加密，是否进行重新加密对于翻墙效果并没有啥实质性的变化，反而会增加一点服务器开销，也不用担心vmess的安全性，本身它自己也是加密的，多重加密好像是一件吃力不讨好的事情，当然再加个密会让人心理上稍微得到点安慰吧！</p>
+</blockquote>
+<h3 id="针对vmess协议的扩展"><a href="#针对vmess协议的扩展" class="headerlink" title="针对vmess协议的扩展"></a>针对vmess协议的扩展</h3><p>酸酸乳兴起的时候，由于其支持对酸酸协议进行协议混淆收获了很多死忠粉，利用其可以模拟http和https流量的特性，让墙无能为力，但是成也萧何败也萧何，这种混淆是经不起推敲的，它只是模拟了这两种常见的网页访问流量，实际上并不是，反而因为一些信息的缺失变成了强特征协议，很容易被墙针对，vmess为了能够有效的规避这样的问题，可以做到完全实现http或者https流量访问，配合nginx和websocket等工具还能做到端口复用，vmess支持的协议主要有一下几种：</p>
+<ul>
+<li><p>TCP（最原始，即使用vmess进行裸奔，很容易就会被针对）</p>
+</li>
+<li><p>mKCP（kcp协议的改进款，实际上就是一种udp协议，在udp基础上也可以实现多种场景的模拟，同时也可以拯救那些被tcp阻断的主机）</p>
+</li>
+<li><p>HTTP（不建议使用，HTTP明文传输数据）</p>
+</li>
+<li><p>TLS（使用证书加密的HTTP协议，作为上面HTTP的强化，推荐）</p>
+</li>
+<li><p>WebSocket（支持全双工通信的一种协议，支持扩展，具有较好的数据压缩效果，可以保持连接状态）</p>
+</li>
+<li><p>HTTP/2（新版本的HTTP协议，虽然协议规范上没有要求一定要加密，但基本上都会配合TLS一起使用；协议本身具有一定的争议性，但这些并不是普通用户所需要关注的）</p>
+</li>
+<li><p>QUIC（由 Google 提出的使用 UDP 进行多路并发传输的协议，注意它是谷歌推出的，那自然会被墙重点对待，结果可想而知，基本上没啥意义）</p>
+</li>
+</ul>
+<p>基于上述的几个协议情况，结合墙的特性，现在比较推荐的有两种方案，纯TLS或者TLS+WebSocket，本质上只有一种，那就是伪装成TLS流量，毕竟经过Google的推动，今后的大部分网络流量都将是TLS流量，“法不责众”嘛，墙还没有那么强大的性能来对所有的连接进行检测；</p>
+<p>TLS和TLS+WebSocket通信都是TLS，前者是将V2Ray模拟成一个web服务器，独占443端口，而后者需要搭配nginx那样的web服务器使用，但支持单口复用，web服务器还能用来提供一些别的服务，一定程度上可以增强混淆能力</p>
+<p>如果单纯的用来做科学上网的话以上两种方式个人觉得会比较好用</p>
+<h2 id="v2ray功能模块"><a href="#v2ray功能模块" class="headerlink" title="v2ray功能模块"></a>v2ray功能模块</h2><blockquote>
+<p>v2ray以现在的功能来说已经类似于一个小型系统了，对数据的出入和路由选择都能进行调整，而这些功能的实现离不开v2ray的内置功能模块的配合，具体的构成可参考下图所示</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="center">log</th>
+<th align="center">inbounds</th>
+<th align="center">outbounds</th>
+<th align="center">dns</th>
+<th align="center">routing</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">loglevel</td>
+<td align="center">socks</td>
+<td align="center">socks</td>
+<td align="center">hosts</td>
+<td align="center">domain</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">http</td>
+<td align="center">http</td>
+<td align="center">servers</td>
+<td align="center">ip</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">vmess</td>
+<td align="center">vmess</td>
+<td align="center"></td>
+<td align="center">network</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">MTProto</td>
+<td align="center">freedom</td>
+<td align="center"></td>
+<td align="center">port</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">shadowsocks</td>
+<td align="center">shadowsocks</td>
+<td align="center"></td>
+<td align="center">inboundTag</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center">dokodemo-door</td>
+<td align="center">blackhole</td>
+<td align="center"></td>
+<td align="center">source</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">user</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">protocol</td>
+</tr>
+<tr>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">attrs</td>
+</tr>
+</tbody></table>
+<h3 id="log"><a href="#log" class="headerlink" title="log"></a>log</h3><p>设置v2ray启用日志功能，如果你用不到这个的话也没有必要加上，当然启用其会比较方便的查找问题，并不是必须的</p>
+<h3 id="inbounds"><a href="#inbounds" class="headerlink" title="inbounds"></a>inbounds</h3><p>正如其名，入站连接配置，基本上v2ray上监听配置都在这个位置进行配置，这相当于v2ray的数据入口，可以提供socks连接、透明代理、http代理等，具体可以提供哪种服务还需要考虑v2ray是作为服务端还是客户端</p>
+<h3 id="outbounds"><a href="#outbounds" class="headerlink" title="outbounds"></a>outbounds</h3><p>出站连接配置，数据的出入取决于v2ray是作为服务端还是作为客户端，一般情况下inbounds和outbounds上的协议都是通用的，此处有几个特例，<a href="https://www.v2ray.com/chapter_02/protocols/dokodemo.html" target="_blank" rel="noopener">透明代理</a>、<a href="https://www.v2ray.com/chapter_02/protocols/mtproto.html" target="_blank" rel="noopener">MTProto</a></p>
+<h3 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h3><p>v2ray内置的DNS模块，可以基于策略对域名进行解析，不仅可以解析，也可以进行屏蔽或者自定义解析结果，这个功能模块一定程度上可以代替本地的DNS功能，如果配置好的话可以为局域网提供一个免污染的DNS服务</p>
+<h3 id="routing"><a href="#routing" class="headerlink" title="routing"></a>routing</h3><p>这个可能是v2ray中最值得折腾的部分</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
+<ul>
+<li><strong>2019.10.19</strong> 初稿</li>
+<li><strong>2019.11.04</strong> 协议分析</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/09/16/linux-router-07-over-the-gfw/" rel="prev" title="Linux路由补完计划07 翻越长城">
+      <i class="fa fa-chevron-left"></i> Linux路由补完计划07 翻越长城
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/01/14/linux-router-09-make-a-vpn-with-wireguard/" rel="next" title="Linux路由补完计划9 通过wireguard建立对外VPN">
+      Linux路由补完计划9 通过wireguard建立对外VPN <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v2ray配置文件主体——json文件格式"><span class="nav-number">2.</span> <span class="nav-text">v2ray配置文件主体——json文件格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v2ray核心协议"><span class="nav-number">3.</span> <span class="nav-text">v2ray核心协议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#协议认证"><span class="nav-number">3.1.</span> <span class="nav-text">协议认证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户ID"><span class="nav-number">3.2.</span> <span class="nav-text">用户ID</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#加密"><span class="nav-number">3.3.</span> <span class="nav-text">加密</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#针对vmess协议的扩展"><span class="nav-number">3.4.</span> <span class="nav-text">针对vmess协议的扩展</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v2ray功能模块"><span class="nav-number">4.</span> <span class="nav-text">v2ray功能模块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#log"><span class="nav-number">4.1.</span> <span class="nav-text">log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#inbounds"><span class="nav-number">4.2.</span> <span class="nav-text">inbounds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#outbounds"><span class="nav-number">4.3.</span> <span class="nav-text">outbounds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS"><span class="nav-number">4.4.</span> <span class="nav-text">DNS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#routing"><span class="nav-number">4.5.</span> <span class="nav-text">routing</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#历史"><span class="nav-number">5.</span> <span class="nav-text">历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https://github.com/ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+  <script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
