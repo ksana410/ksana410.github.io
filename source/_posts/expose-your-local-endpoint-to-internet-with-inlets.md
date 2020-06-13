@@ -68,8 +68,6 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 
 稍微概括一下就是类似于如下的流程
 
-客户端和服务端之间通信：
-
 本地应用端口 <==http(s)/ws(s)==> inlets(client) <==ws(s)==> inlets(server) <==http(s)==> 用户浏览器
 
 ## 实例
@@ -95,24 +93,27 @@ inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部�
 
 * 域名：etspace.xyz
 * 服务器公网ip：~~165.227.56.252~~
-* 本地客户端主机：~~[NanoPi NEO2](http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP)~~
-* 需要对外发布的服务：自用黑裙登录页面以及软路由netdata状态页
+* 本地客户端主机：~~[NanoPi NEO2](http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP)(很不幸被我买了)~~ ESXi主机上文件存储服务器
+* 需要对外发布的服务：~~自用黑裙登录页面以及软路由netdata状态页~~ 软路由netdata状态页及routeros登陆页
+
+{% asset_image 03.png inlets 03 %}
+{% asset_image 04.png inlets 04 %}
 
 #### 配置DNS解析
 
 vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DNS管理后台，修改域名的解析地址，我使用的是[he.net](https://he.net)，此时进入后台，添加相应的解析记录
 
-此处需要设置三个解析记录：
+> 此处需要设置三个解析记录：
 
 |域名|解析类型|计划用途|
 |:------:|:------:|:------:|
 |inlets.etspace.xyz|A|用于主控制通信|
-|qh.etsapce.xyz|A|映射本地群晖登录界面|
+|routeros.etsapce.xyz|A|映射本地routeros登陆界面|
 |netdata.etspace.xyz|A|映射本地netdata状态界面|
 
 #### 服务端上inlets的安装和配置
 
-由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了
+> 由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了
 
 * 安装inlets
 
