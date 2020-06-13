@@ -28,7 +28,7 @@
 <meta property="og:site_name" content="Vincent折腾笔记">
 <meta property="og:description" content="前言 上一篇中我简单说明了一下如何使用v2ray进行软路由透明代理的方法，利用v2ray的透明代理的功能，结合iptables数据转发实现了一个效果还不错的透明代理，连接了这台软路由的设备终于可以体验无缝的科学上网了，但我并没有详细的将v2ray的配置文件进行说明，我只是对所需要用到的配置内容进行了一下说明，并没有详细的将其中的注意点提取出来进行归类讲解，v2ray的配置相比于ss等工具而言，真的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-06-11T16:44:17.397Z">
+<meta property="og:updated_time" content="2020-06-13T16:20:09.558Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux路由补完计划番外篇 v2ray配置文件详解">
 <meta name="twitter:description" content="前言 上一篇中我简单说明了一下如何使用v2ray进行软路由透明代理的方法，利用v2ray的透明代理的功能，结合iptables数据转发实现了一个效果还不错的透明代理，连接了这台软路由的设备终于可以体验无缝的科学上网了，但我并没有详细的将v2ray的配置文件进行说明，我只是对所需要用到的配置内容进行了一下说明，并没有详细的将其中的注意点提取出来进行归类讲解，v2ray的配置相比于ss等工具而言，真的">
@@ -220,7 +220,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-11 16:44:17" itemprop="dateModified" datetime="2020-06-11T16:44:17+00:00">2020-06-11</time>
+                <time title="修改时间：2020-06-13 16:20:09" itemprop="dateModified" datetime="2020-06-13T16:20:09+00:00">2020-06-13</time>
               </span>
 
           
@@ -296,7 +296,7 @@
 <p>TLS和TLS+WebSocket通信都是TLS，前者是将V2Ray模拟成一个web服务器，独占443端口，而后者需要搭配nginx那样的web服务器使用，但支持单口复用，web服务器还能用来提供一些别的服务，一定程度上可以增强混淆能力</p>
 <p>如果单纯的用来做科学上网的话以上两种方式个人觉得会比较好用</p>
 <h2 id="v2ray功能模块"><a href="#v2ray功能模块" class="headerlink" title="v2ray功能模块"></a>v2ray功能模块</h2><blockquote>
-<p>v2ray以现在的功能来说已经类似于一个小型系统了，对数据的出入和路由选择都能进行调整，而这些功能的实现离不开v2ray的内置功能模块的配合，具体的构成可参考下图所示</p>
+<p>v2ray以现在的功能来说已经类似于一个小型系统了，对数据的出入和路由选择都能进行调整，而这些功能的实现离不开v2ray的内置功能模块的配合，常用的几个模块的具体构成可参考下图所示：</p>
 </blockquote>
 <table>
 <thead>
@@ -316,14 +316,14 @@
 <td align="center">domain</td>
 </tr>
 <tr>
-<td align="center"></td>
+<td align="center">error</td>
 <td align="center">http</td>
 <td align="center">http</td>
 <td align="center">servers</td>
 <td align="center">ip</td>
 </tr>
 <tr>
-<td align="center"></td>
+<td align="center">access</td>
 <td align="center">vmess</td>
 <td align="center">vmess</td>
 <td align="center"></td>
@@ -376,7 +376,7 @@
 <h3 id="inbounds"><a href="#inbounds" class="headerlink" title="inbounds"></a>inbounds</h3><p>正如其名，入站连接配置，基本上v2ray上监听配置都在这个位置进行配置，这相当于v2ray的数据入口，可以提供socks连接、透明代理、http代理等，具体可以提供哪种服务还需要考虑v2ray是作为服务端还是客户端</p>
 <h3 id="outbounds"><a href="#outbounds" class="headerlink" title="outbounds"></a>outbounds</h3><p>出站连接配置，数据的出入取决于v2ray是作为服务端还是作为客户端，一般情况下inbounds和outbounds上的协议都是通用的，此处有几个特例，<a href="https://www.v2ray.com/chapter_02/protocols/dokodemo.html" target="_blank" rel="noopener">透明代理</a>、<a href="https://www.v2ray.com/chapter_02/protocols/mtproto.html" target="_blank" rel="noopener">MTProto</a></p>
 <h3 id="DNS"><a href="#DNS" class="headerlink" title="DNS"></a>DNS</h3><p>v2ray内置的DNS模块，可以基于策略对域名进行解析，不仅可以解析，也可以进行屏蔽或者自定义解析结果，这个功能模块一定程度上可以代替本地的DNS功能，如果配置好的话可以为局域网提供一个免污染的DNS服务</p>
-<h3 id="routing"><a href="#routing" class="headerlink" title="routing"></a>routing</h3><p>这个可能是v2ray中最值得折腾的部分</p>
+<h3 id="routing"><a href="#routing" class="headerlink" title="routing"></a>routing</h3><p>这个可能是v2ray中最值得折腾的部分，当然也可能是最需要花时间研究的部分</p>
 <h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
 <ul>
 <li><strong>2019.10.19</strong> 初稿</li>

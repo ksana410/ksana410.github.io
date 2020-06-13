@@ -29,8 +29,10 @@
 <meta property="og:description" content="前言 随着IPV4地址的不断匮乏，现在很多电信运营商早就开始将用户的上网IP私网化，即我们常说的内网地址，这样的地址是经过NAT的，很多用户通过运营商提供的内网地址共享一个公网地址进行上网，运营商的IP资源节省了，普通用户也感觉不出什么区别，但对于需要外部访问家中或者公司中一些资源的用户来说，这就是灾难，也许有人说你可以打电话投诉来获取公网IP，电信联通可能还行得通，对于大内网的移动就无法实现了，">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/01.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/03.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/04.png">
 <meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/02.png">
-<meta property="og:updated_time" content="2020-06-12T02:37:28.684Z">
+<meta property="og:updated_time" content="2020-06-13T16:37:31.941Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="又一款内网穿透工具——inlets">
 <meta name="twitter:description" content="前言 随着IPV4地址的不断匮乏，现在很多电信运营商早就开始将用户的上网IP私网化，即我们常说的内网地址，这样的地址是经过NAT的，很多用户通过运营商提供的内网地址共享一个公网地址进行上网，运营商的IP资源节省了，普通用户也感觉不出什么区别，但对于需要外部访问家中或者公司中一些资源的用户来说，这就是灾难，也许有人说你可以打电话投诉来获取公网IP，电信联通可能还行得通，对于大内网的移动就无法实现了，">
@@ -223,7 +225,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-12 02:37:28" itemprop="dateModified" datetime="2020-06-12T02:37:28+00:00">2020-06-12</time>
+                <time title="修改时间：2020-06-13 16:37:31" itemprop="dateModified" datetime="2020-06-13T16:37:31+00:00">2020-06-13</time>
               </span>
 
           
@@ -269,7 +271,6 @@
 <li>当用户访问”<a href="http://www.site.com&quot;这个网址时，就相当于访问内网中的3000端口" target="_blank" rel="noopener">www.site.com&quot;这个网址时，就相当于访问内网中的3000端口</a></li>
 </ul>
 <p>稍微概括一下就是类似于如下的流程</p>
-<p>客户端和服务端之间通信：</p>
 <p>本地应用端口 &lt;==http(s)/ws(s)==&gt; inlets(client) &lt;==ws(s)==&gt; inlets(server) &lt;==http(s)==&gt; 用户浏览器</p>
 <h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><hr>
 <blockquote>
@@ -290,11 +291,16 @@
 <ul>
 <li>域名：etspace.xyz</li>
 <li>服务器公网ip：<del>165.227.56.252</del></li>
-<li>本地客户端主机：<del><a href="http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP" target="_blank" rel="noopener">NanoPi NEO2</a></del></li>
-<li>需要对外发布的服务：自用黑裙登录页面以及软路由netdata状态页</li>
+<li>本地客户端主机：<del><a href="http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP" target="_blank" rel="noopener">NanoPi NEO2</a>(很不幸被我买了)</del> ESXi主机上文件存储服务器</li>
+<li>需要对外发布的服务：<del>自用黑裙登录页面以及软路由netdata状态页</del> 软路由netdata状态页及routeros登陆页</li>
 </ul>
+<img src="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/03.png" title="inlets 03">
+<img src="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/04.png" title="inlets 04">
+
 <h4 id="配置DNS解析"><a href="#配置DNS解析" class="headerlink" title="配置DNS解析"></a>配置DNS解析</h4><p>vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DNS管理后台，修改域名的解析地址，我使用的是<a href="https://he.net" target="_blank" rel="noopener">he.net</a>，此时进入后台，添加相应的解析记录</p>
+<blockquote>
 <p>此处需要设置三个解析记录：</p>
+</blockquote>
 <table>
 <thead>
 <tr>
@@ -309,9 +315,9 @@
 <td align="center">用于主控制通信</td>
 </tr>
 <tr>
-<td align="center">qh.etsapce.xyz</td>
+<td align="center">routeros.etsapce.xyz</td>
 <td align="center">A</td>
-<td align="center">映射本地群晖登录界面</td>
+<td align="center">映射本地routeros登陆界面</td>
 </tr>
 <tr>
 <td align="center">netdata.etspace.xyz</td>
@@ -319,7 +325,9 @@
 <td align="center">映射本地netdata状态界面</td>
 </tr>
 </tbody></table>
-<h4 id="服务端上inlets的安装和配置"><a href="#服务端上inlets的安装和配置" class="headerlink" title="服务端上inlets的安装和配置"></a>服务端上inlets的安装和配置</h4><p>由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了</p>
+<h4 id="服务端上inlets的安装和配置"><a href="#服务端上inlets的安装和配置" class="headerlink" title="服务端上inlets的安装和配置"></a>服务端上inlets的安装和配置</h4><blockquote>
+<p>由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了</p>
+</blockquote>
 <ul>
 <li>安装inlets</li>
 </ul>

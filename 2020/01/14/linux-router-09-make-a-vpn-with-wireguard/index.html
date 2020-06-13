@@ -20,18 +20,18 @@
     var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="前言 梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！">
+  <meta name="description" content="前言 梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！ 选择 我选择的vpn协议是Wireguard，曾经有一段时间它被很多人传颂为不怕被封的vpn，这个时候就要呵呵了，虽然它使用的是udp来进行数据通信的，但说它不怕被封就有点假了，运营商针对udp做个限速，你协议再牛也废了 现在用它翻墙的人也不">
 <meta name="keywords" content="Linux">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux路由补完计划9 通过wireguard建立对外VPN">
 <meta property="og:url" content="https://ksana410.github.io/2020/01/14/linux-router-09-make-a-vpn-with-wireguard/index.html">
 <meta property="og:site_name" content="Vincent折腾笔记">
-<meta property="og:description" content="前言 梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！">
+<meta property="og:description" content="前言 梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！ 选择 我选择的vpn协议是Wireguard，曾经有一段时间它被很多人传颂为不怕被封的vpn，这个时候就要呵呵了，虽然它使用的是udp来进行数据通信的，但说它不怕被封就有点假了，运营商针对udp做个限速，你协议再牛也废了 现在用它翻墙的人也不">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2020-06-12T02:37:28.684Z">
+<meta property="og:updated_time" content="2020-06-12T05:50:29.159Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux路由补完计划9 通过wireguard建立对外VPN">
-<meta name="twitter:description" content="前言 梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！">
+<meta name="twitter:description" content="前言 梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！ 选择 我选择的vpn协议是Wireguard，曾经有一段时间它被很多人传颂为不怕被封的vpn，这个时候就要呵呵了，虽然它使用的是udp来进行数据通信的，但说它不怕被封就有点假了，运营商针对udp做个限速，你协议再牛也废了 现在用它翻墙的人也不">
 
 <link rel="canonical" href="https://ksana410.github.io/2020/01/14/linux-router-09-make-a-vpn-with-wireguard/">
 
@@ -220,7 +220,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-06-12 02:37:28" itemprop="dateModified" datetime="2020-06-12T02:37:28+00:00">2020-06-12</time>
+                <time title="修改时间：2020-06-12 05:50:29" itemprop="dateModified" datetime="2020-06-12T05:50:29+00:00">2020-06-12</time>
               </span>
 
           
@@ -236,6 +236,11 @@
       
         <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
 <p>梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！</p>
+<h2 id="选择"><a href="#选择" class="headerlink" title="选择"></a>选择</h2><hr>
+<p>我选择的vpn协议是<a href="https://www.wireguard.com/" target="_blank" rel="noopener">Wireguard</a>，曾经有一段时间它被很多人传颂为不怕被封的vpn，这个时候就要呵呵了，虽然它使用的是udp来进行数据通信的，但说它不怕被封就有点假了，运营商针对udp做个限速，你协议再牛也废了</p>
+<p>现在用它翻墙的人也不多了，但作为vpn难道就只能用来翻墙吗，当然不是（虽然我的目的还是用来连接到家中的网络进行翻墙），和家中的服务器进行加密通信也不错，没事看看家中nas上的电影，调取一些存档也是很不错的</p>
+<h2 id="Wireguard"><a href="#Wireguard" class="headerlink" title="Wireguard"></a>Wireguard</h2><hr>
+<p>Wireguard属于新一代的vpn，它相比IPsec这种vpn协议而言更加简单并且更快，而它的代码相比对应的openvpn函数库则更加简洁高效。Wireguard的可移植性很好，最开始实在Linux上发布，现在已经支持Windows，MacOS，BSD，ISO，Android等平台，Wireguard还是非常新的vpn协议规范，目前还在积极开发中，因为其简单高效并且具有极高的安全性，业界对其评价很高，现在已经被合并到Linux 5.x内核中了，在不久的将来它可能成为一款主流的vpn协议</p>
 
     </div>
 
@@ -324,7 +329,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#选择"><span class="nav-number">2.</span> <span class="nav-text">选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Wireguard"><span class="nav-number">3.</span> <span class="nav-text">Wireguard</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
