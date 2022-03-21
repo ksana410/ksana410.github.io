@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言前段时间我一直都在发布编译OpenWRT的相关视频（其实自己也没发布几个，重度懒症患者），可是实际上我并不是一个OpenWRT用户，很难相信吧！具体是什么情况，就让我娓娓道来吧～">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划 挖坑起因">
+<meta property="og:url" content="https://ksana410.github.io/2019/07/17/router/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言前段时间我一直都在发布编译OpenWRT的相关视频（其实自己也没发布几个，重度懒症患者），可是实际上我并不是一个OpenWRT用户，很难相信吧！具体是什么情况，就让我娓娓道来吧～">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/17/router/01.png">
+<meta property="article:published_time" content="2019-07-17T23:19:36.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.445Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/07/17/router/01.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/07/17/router/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划 挖坑起因 | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/07/17/router/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划 挖坑起因
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-07-17 23:19:36" itemprop="dateCreated datePublished" datetime="2019-07-17T23:19:36+00:00">2019-07-17</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>前段时间我一直都在发布编译OpenWRT的相关视频（其实自己也没发布几个，重度懒症患者），可是实际上我并不是一个OpenWRT用户，很难相信吧！具体是什么情况，就让我娓娓道来吧～</p>
+<hr>
+<span id="more"></span>
+
+<h2 id="简单展示"><a href="#简单展示" class="headerlink" title="简单展示"></a>简单展示</h2><iframe width="560" height="315" src="https://www.youtube.com/embed/01FVI6bnCcU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<hr>
+<h2 id="历程"><a href="#历程" class="headerlink" title="历程"></a>历程</h2><p>作为一个网络技术人员，如果单纯使用百度的话真的找不到多少有用的资料，特别是当初学习Linux的时候，虽然我的入门书是<a target="_blank" rel="noopener" href="http://linux.vbird.org/linux_basic/"><strong>《鸟哥的私房菜》</strong></a>这样的写得非常详细，甚至说有些罗嗦的书，但实际操作中还是有很多机会遇到解决不了的问题，那怎么办呢！只能用搜索引擎，当时正值Google还未退出中国，Google引擎还是很好用的时候，后悔入坑了Google全家桶，搞得我至今还是无法割舍Google帐号所带来的便利，后来的事情相信大家也是知道的，Google退出中国，只能使用香港服务器，到后来Gmail被屏蔽，Google彻底被墙，那不能用怎么办呢，当初还非常天真的认为baidu应该还能凑合吧，可是最后发现那就是个垃圾～～～</p>
+<p>没办法，先从一些免费的工具开始吧，手机上安装了很多免费翻墙软件，然后随着天朝加紧GFW的建设，这些软件都退出了历史舞台，直到Shdowsocks的出现，我发现了可以在路由器上配置透明代理这样的操作，正值<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/%E6%9E%81%E8%B7%AF%E7%94%B1"><strong>极路由</strong></a>兴起的智能路由器风潮（当时并没有了解过OpenWRT，大家不要喷我），然后就入坑了极1S，然后官方的第三方应用被限制，没办法，求助google，仔细去研究了一下OpenWRT，刷了感觉还凑合，可是极1S是百兆的路由器，家里的宽带支持多拨，它的性能跟不上……</p>
+<p>15年的时候软路由开始兴起，一开始并没有入坑，不过呢，本身在公司就有服务器资源，使用<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/VMware_ESXi"><strong>ESXI</strong></a>搭建了软路由来进行测试，其中也包括一些大名鼎鼎的防火墙产品，比如<a target="_blank" rel="noopener" href="https://www.pfsense.org/"><strong>PFSENSE</strong></a>，<a target="_blank" rel="noopener" href="http://www.panabit.com/"><strong>Panabit</strong></a>等，它们都很好，但是呢不能挂梯子，这是我所非常迫切的功能，没办法，最终只能使用x86版本的OpenWRT，当时好像对于多核和大内存支持还有问题，多拨的表现也很不咋地，那就稍微妥协一下吧，用OpenWRT做二级路由，通过它来挂梯子，在公司内部测试感觉方案成熟了，然后我就利用一块志强X3360+超微X7SBL-LN2在家整了一台，此时已经到了17年，KoolShare论坛的固件开始崭露头角，可是在使用了之后发现挂梯子稳定性真的捉急啊（也许是我的错觉吧，每天不重启一下梯子准挂），最终让我放弃OpenWRT的主要是它吧，当然其中也经历了大半年的煎熬。当然OpenWRT还是不错的，只是我不想再用了，<a target="_blank" rel="noopener" href="https://github.com/coolsnowwolf/lede"><strong>Lean大神</strong></a>的固件还是非常靠谱的（原谅我一直没用他的源码进行编译）。</p>
+<img src="/2019/07/17/router/01.png" class="" title="linux_router">
+
+<p>最终我只能寻找替代方案，此时我正在用ss-local挂代理，然后研究了一下OpenWRT的挂梯子原理，知道了ss-redir这个Shdowsocks中的组件，好了，就你了，从挂代理一下子就进化到了透明网关，之后就开始了我Linux路由折腾之路，从第一个成熟版本到现在，差不多已经有两年时间了</p>
+<hr>
+<h2 id="Linux路由进化史"><a href="#Linux路由进化史" class="headerlink" title="Linux路由进化史"></a>Linux路由进化史</h2><ul>
+<li>实现路由功能：iptables命令配置nat及forward</li>
+<li>透明代理达成：iptables配置转发及ss-redir模式实现</li>
+<li>DNS防污染：能挂梯子但是却无法获取到正确的地址，那等于没翻墙</li>
+<li>广告屏蔽功能实现：发现一个有意思的项目Pihole，利用起来效果还可以</li>
+<li>实现一些附加功能：KMS、内网穿透、状态监测、VPN等</li>
+</ul>
+<blockquote>
+<p>以上即是我折腾出的功能</p>
+</blockquote>
+<hr>
+<h2 id="自用Linux系统情况及改进计划"><a href="#自用Linux系统情况及改进计划" class="headerlink" title="自用Linux系统情况及改进计划"></a>自用Linux系统情况及改进计划</h2><table>
+<thead>
+<tr>
+<th align="center">功能</th>
+<th align="center">过去</th>
+<th align="center">现在</th>
+<th align="center">未来计划</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">操作系统</td>
+<td align="center">Debian</td>
+<td align="center">Debian</td>
+<td align="center">alpine</td>
+</tr>
+<tr>
+<td align="center">处理器核心数</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="center">内存大小</td>
+<td align="center">1G</td>
+<td align="center">256M</td>
+<td align="center">128M</td>
+</tr>
+<tr>
+<td align="center">梯子应用</td>
+<td align="center">shadowsocks</td>
+<td align="center">v2ray</td>
+<td align="center">v2ray&#x2F;clash</td>
+</tr>
+<tr>
+<td align="center">防火墙</td>
+<td align="center">iptables</td>
+<td align="center">iptables</td>
+<td align="center">nftables</td>
+</tr>
+<tr>
+<td align="center">广告过滤</td>
+<td align="center">none</td>
+<td align="center">pihole</td>
+<td align="center">Adguard-home</td>
+</tr>
+<tr>
+<td align="center">DNS防污染</td>
+<td align="center">ss-tunnel</td>
+<td align="center">dnscrypt-proxy</td>
+<td align="center">Adguard-home</td>
+</tr>
+<tr>
+<td align="center">附加功能</td>
+<td align="center">none</td>
+<td align="center">kms\frpc\wireguard\netdata</td>
+<td align="center">ipxe\iscsi\upnp</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>这只是大致的情况，具体的会在后续内容中更新</p>
+</blockquote>
+<hr>
+<h2 id="教程更新计划"><a href="#教程更新计划" class="headerlink" title="教程更新计划"></a>教程更新计划</h2><blockquote>
+<p>需要一定的网络和Linux基础，懒癌患者托更比较严重，望周知</p>
+</blockquote>
+<h3 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h3><ul>
+<li><input checked="" disabled="" type="checkbox"> Linux路由补完计划00 虚拟机安装Debian</li>
+<li><input checked="" disabled="" type="checkbox"> Linux路由补完计划01 基本概念说明</li>
+<li><input checked="" disabled="" type="checkbox"> Linux路由补完计划02 Debian安装及配置基础路由功能</li>
+<li><input checked="" disabled="" type="checkbox"> Linux路由补完计划03 配置DNS和DHCP</li>
+</ul>
+<h3 id="进阶"><a href="#进阶" class="headerlink" title="进阶"></a>进阶</h3><ul>
+<li><input checked="" disabled="" type="checkbox"> Linux路由补完计划04 利用DNS进行广告过滤</li>
+<li><input checked="" disabled="" type="checkbox"> Linux路由补完计划05 DNS防污染</li>
+<li><input disabled="" type="checkbox"> Linux路由补完计划06 透明代理搭建——V2ray篇</li>
+<li><input disabled="" type="checkbox"> Linux路由补完计划07 透明代理搭建——Shadowsocks篇</li>
+<li><input disabled="" type="checkbox"> Linux路由补完计划08 利用二级路由搭建Wireguard VPN</li>
+<li><input disabled="" type="checkbox"> Linux路由补完计划09 应用容器化（docker应用实例）</li>
+</ul>
+<h3 id="扩展"><a href="#扩展" class="headerlink" title="扩展"></a>扩展</h3><ul>
+<li><input disabled="" type="checkbox"> Linux路由补完计划10 LVM or RAID</li>
+<li><input disabled="" type="checkbox"> Linux路由补完计划11 搭建文件共享</li>
+<li><input disabled="" type="checkbox"> Linux路由补完计划12 内网穿透</li>
+</ul>
+<hr>
+<h2 id="更新历史"><a href="#更新历史" class="headerlink" title="更新历史"></a>更新历史</h2><ul>
+<li><strong>2019.07.17</strong> 初始版本</li>
+<li><strong>2019.07.18</strong> 增加部分链接及说明调整</li>
+<li><strong>2019.08.04</strong> 完善更新计划</li>
+<li><strong>2019.09.10</strong> 格式调整</li>
+<li><strong>2020.03.03</strong> 计划调整</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/12/30/Hello-Hexo/" rel="prev" title="Hello Hexo">
+      <i class="fa fa-chevron-left"></i> Hello Hexo
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/07/18/linux-router-00-install-debian/" rel="next" title="Linux路由补完计划 虚拟机安装Debian">
+      Linux路由补完计划 虚拟机安装Debian <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E5%B1%95%E7%A4%BA"><span class="nav-number">2.</span> <span class="nav-text">简单展示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">历程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux%E8%B7%AF%E7%94%B1%E8%BF%9B%E5%8C%96%E5%8F%B2"><span class="nav-number">4.</span> <span class="nav-text">Linux路由进化史</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E7%94%A8Linux%E7%B3%BB%E7%BB%9F%E6%83%85%E5%86%B5%E5%8F%8A%E6%94%B9%E8%BF%9B%E8%AE%A1%E5%88%92"><span class="nav-number">5.</span> <span class="nav-text">自用Linux系统情况及改进计划</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%99%E7%A8%8B%E6%9B%B4%E6%96%B0%E8%AE%A1%E5%88%92"><span class="nav-number">6.</span> <span class="nav-text">教程更新计划</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80"><span class="nav-number">6.1.</span> <span class="nav-text">基础</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E9%98%B6"><span class="nav-number">6.2.</span> <span class="nav-text">进阶</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A9%E5%B1%95"><span class="nav-number">6.3.</span> <span class="nav-text">扩展</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2"><span class="nav-number">7.</span> <span class="nav-text">更新历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 前期的准备工作已经基本上完成了，接下来就是翻越长城，世界那么美好，为啥不出去看看呢！本篇将利用近几年比较热门的V2Ray配合iptables实现自动翻墙，实现方式和openwrt上是一样的，只不过本文使用的是普通的Linux发行版而已。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划07 翻越长城">
+<meta property="og:url" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 前期的准备工作已经基本上完成了，接下来就是翻越长城，世界那么美好，为啥不出去看看呢！本篇将利用近几年比较热门的V2Ray配合iptables实现自动翻墙，实现方式和openwrt上是一样的，只不过本文使用的是普通的Linux发行版而已。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/01.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/11.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/07.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/08.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/10.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/18.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/17.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/25.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/26.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/27.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/28.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/30.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/32.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/31.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/33.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/34.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/35.png">
+<meta property="article:published_time" content="2019-09-16T23:42:21.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.417Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/01.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划07 翻越长城 | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/09/16/linux-router-07-over-the-gfw/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划07 翻越长城
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-09-16 23:42:21" itemprop="dateCreated datePublished" datetime="2019-09-16T23:42:21+00:00">2019-09-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>前期的准备工作已经基本上完成了，接下来就是翻越长城，世界那么美好，为啥不出去看看呢！本篇将利用近几年比较热门的<a target="_blank" rel="noopener" href="https://github.com/v2ray/v2ray-core">V2Ray</a>配合iptables实现自动翻墙，实现方式和openwrt上是一样的，只不过本文使用的是普通的Linux发行版而已。</p>
+<span id="more"></span>
+
+<h2 id="构成"><a href="#构成" class="headerlink" title="构成"></a>构成</h2><hr>
+<p><strong>V2Ray</strong> V2Ray是<a target="_blank" rel="noopener" href="https://v2ray.com/">Project V</a>项目的核心组成，它是由一群爱好自由的有志之士共同开发的，至今已经发展出多种方案来应对GFW对翻墙的封锁，这也是在SS和SSR流量有嫌疑被精确识别的前提下最好的翻墙方案 <strong>（当然，这只是个人的观点，不同地区GFW对不同工具会有不同的侧重）</strong></p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/01.png" class="" title="v2 01">
+
+<p><strong>iptables</strong> Linux上的防火墙配置工具就无需过多介绍了吧，前期用来配置路由就是靠它，接下来在科学上网中它也将担任重要的角色</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><hr>
+<blockquote>
+<p>本例中使用了V2Ray自身支持的一个功能协议，名字是 <strong><a target="_blank" rel="noopener" href="https://v2ray.com/chapter_02/protocols/dokodemo.html">dokodemo-door</a>（任意门）</strong> 官方的说明文档已经把每个参数都进行了说明，如果配置成功的话，基本上透明代理的效果会很好（前提你自己有一个比较高速的梯子，或者机场也行，最近支持V2Ray的机场好像变多了）</p>
+<p>当然对于大部分人来说这样的说明肯定一头雾水，让人无从下手，还好官网直接提供了两个白话文教程，<a target="_blank" rel="noopener" href="https://toutyrater.github.io/app/transparent_proxy.html">白话文教程</a>、<a target="_blank" rel="noopener" href="https://guide.v2fly.org/app/transparent_proxy.html#%E8%AE%BE%E7%BD%AE%E6%AD%A5%E9%AA%A4">新白话文教程（社区版）</a>，社区版可能会更加容易让人接受一点</p>
+</blockquote>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/11.png" class="" title="v2 02">
+
+<p>那它是怎么实现科学上网的呢？图不高兴画了，就直接用文字来表述一下吧，具体的过程主要包括如下几个部分：</p>
+<ul>
+<li><p>发起访问</p>
+<p>假设你想访问被墙的网站，你会对路由器发起一次通讯请求，此时浏览器会对默认的网关发送一些数据包，这些数据包包含了来源地址，域名信息等必要的信息；</p>
+</li>
+<li><p>数据接收部分</p>
+<p>到达网关之后，此处就是我的软路由，数据包首先会被 <strong>iptables</strong>（实际上并不是它，而是内核中的<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Netfilter">Netfilter</a>，此处只是为了方便说明而已，使用 <strong>iptables</strong> 这个防火墙配置工具代指Linux系统的防火墙部分）接收到，此时 <strong>iptables</strong> 就会基于预先设置的规则对数据包进行匹配；</p>
+</li>
+<li><p>路由判断</p>
+<p><strong>iptables</strong> 会根据数据包中所携带的目标域名或IP判断它的走向，首先是判断是否是本机或者本地局域网的地址，如果是的话就发送过去，如果不是的话就会基于设置的防火墙规则转发给 <strong>V2Ray</strong> 的透明代理端口—— <strong>dokodemo-door</strong> 协议入口；</p>
+</li>
+<li><p><strong>V2Ray</strong> 处理数据</p>
+<p>如果是此时 <strong>V2ray</strong>接收到了数据，它内置了一套路由系统，也会对数据包进行分析，如果数据包目标地址是国内的地址，那 <strong>V2Ray</strong> 不会对数据包进行处理，直接就按照原来的目标地址发送过去，而国外的地址，就会通过预先配置好的梯子通道转发出去，这样就实现了科学上网，当然 <strong>V2Ray</strong> 的功能不止于此，迫于篇幅，本篇就不详细展开了。</p>
+</li>
+</ul>
+<h2 id="开始配置"><a href="#开始配置" class="headerlink" title="开始配置"></a>开始配置</h2><hr>
+<h3 id="1-给系统配置代理"><a href="#1-给系统配置代理" class="headerlink" title="1.给系统配置代理"></a>1.给系统配置代理</h3><p>基本上没有把科学上网配置好之前，这一步都是必须的，此处需要说一句 <strong>感谢伟大的防火墙</strong></p>
+
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export http_proxy=http://172.16.1.10:1081</span><br><span class="line">export https_proxy=$http_proxy</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>此处主要使用的是http代理，可以通过 ss 或者 V2Ray 提供</strong></p>
+</blockquote>
+<h3 id="2-使用V2Ray官方一键安装脚本进行安装"><a href="#2-使用V2Ray官方一键安装脚本进行安装" class="headerlink" title="2.使用V2Ray官方一键安装脚本进行安装"></a>2.使用V2Ray官方一键安装脚本进行安装</h3><p><strong>V2Ray</strong> 项目直接提供了官方的一键安装脚本，由于是使用GO语言编写的，除非自己喜欢折腾，基本上都不需要进行编译安装，一键脚本会自动从github上下载最新的编译好的二进制版本进行安装，同时它也会自动配置好自启动，由于国内访问 <strong>github</strong> 的速度实在是不理想，所以我在第一步的时候就配置好了代理以提高一键脚本的执行速度，直接执行 <code>bash &lt;(curl -L -s https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)</code></p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/07.png" class="" title="v2 04">
+
+<p>执行完成之后会自动随机生成端口和UUID，并配置好自启动，此处使用的是 <strong>debian</strong>，一键脚本基本上可以把大部分配置操作都搞定</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/08.png" class="" title="v2 05">
+
+<h3 id="3-V2Ray配置文件说明"><a href="#3-V2Ray配置文件说明" class="headerlink" title="3.V2Ray配置文件说明"></a>3.V2Ray配置文件说明</h3><p>V2Ray的默认配置文件是<code>/etc/v2ray/config.json</code>，如果使用的是一键脚本的话，默认安装的是服务端配置，此处我打算建立一个本地的科学上网软路由，那么就需要将其修改为客户端模式，不过在这之前首先要对V2Ray的配置文件格式做一下简单介绍，打开配置文件<code>vi /etc/v2ray/config.json</code>，如下图所示：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;inbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">36133</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;vmess&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;clients&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;599a3694-2d63-45da-9738-a568d24c41c2&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;level&quot;</span><span class="punctuation">:</span> <span class="number">1</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;alterId&quot;</span><span class="punctuation">:</span> <span class="number">64</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;outbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;freedom&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blackhole&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blocked&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;routing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;rules&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;ip&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;geoip:private&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blocked&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>根据官方教程，整个配置文件应该由如下几个部分构成，但这些部分都是可以精简的，但有几个部分是必须的，如果是服务端的话，<strong>inbounds</strong>、<strong>outbounds</strong>、<strong>routing</strong>这三个部分是必要的；而如果是客户端的话，一般会多一个<strong>dns</strong>模块提供域名解析的支持，当然如果你对配置文件比较熟悉的话，可以通过增加更多的模块实现更多的功能，完整的结构如下：</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/10.png" class="" title="v2 06">
+
+<p><strong>inbounds</strong>这个部分作为主机的接收端，会监听进入系统的一些连接，一般情况下监听本机端口的都是对外提供服务的，此处也不例外，不管是服务端还是客户端，都是在<strong>inbounds</strong>处提供服务，它相当于是V2Ray的入口</p>
+<p><strong>outbounds</strong>进行对外连接，如果是在服务端，那么就是客户端流量的访问出口，同时也能对一些流量进行屏蔽，而在客户端，主要会提供与服务端进行对接的服务</p>
+<p><strong>routing</strong>可以说是V2Ray上最有用的一个部分，Linux可以通过防火墙配置相关的策略对数据流量走向进行调整，而此处的这个功能也可以对<strong>inbounds</strong>和<strong>outboounds</strong>处的数据流量进行调整，好像除了NAT功能它不能实现，其它的部分都可以，当然此处没有考虑到系统资源开销的问题</p>
+<blockquote>
+<p>相对而言，这个配置文件还是比较复杂的，如果要深入讲的话受限于篇幅，好像不现实，本篇还是以实现透明代理为主吧。</p>
+</blockquote>
+<h3 id="4-修改配置文件开启透明代理"><a href="#4-修改配置文件开启透明代理" class="headerlink" title="4.修改配置文件开启透明代理"></a>4.修改配置文件开启透明代理</h3><p>客户端部分的主体结构是这样的：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;inbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span>                                 <span class="comment">//此处主要提供透明代理服务，计划监听在10000端口，同时也可以提供socks或者http代理等功能</span></span><br><span class="line">  <span class="attr">&quot;outbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span>                                <span class="comment">//主要用于对接vps上部署的V2Ray服务端</span></span><br><span class="line">  <span class="attr">&quot;dns&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span>                                      <span class="comment">//对传入的带域名信息的请求进行解析，也能一定程度上提供抗污染的DNS解析</span></span><br><span class="line">  <span class="attr">&quot;routing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span>                                   <span class="comment">//对传入传出的数据流进行路由选择，国内流量走国内的，国外的走代理，如果是广告的话就进行屏蔽，亦或者一些其它的操作</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>为了方便理解，我会将每个部分分别配置一个实例</strong></p>
+</blockquote>
+<h4 id="配置透明代理监听在10000端口"><a href="#配置透明代理监听在10000端口" class="headerlink" title="配置透明代理监听在10000端口"></a>配置透明代理监听在10000端口</h4><blockquote>
+<p>此处参照两个白话文教程：<a target="_blank" rel="noopener" href="https://toutyrater.github.io/app/transparent_proxy.html">白话文教程</a>、<a target="_blank" rel="noopener" href="https://guide.v2fly.org/app/transparent_proxy.html#%E8%AE%BE%E7%BD%AE%E6%AD%A5%E9%AA%A4">新白话文教程（社区版）</a></p>
+</blockquote>
+<p>作为客户端的话，<strong>inbounds</strong>部分将监听本地的一个或者多个端口，我会创建一个透明代理和一个socks5代理，socks5代理主要用于测试科学上网是否成功，废话不多说，直接开始吧。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;inbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dokodemo-door&quot;</span><span class="punctuation">,</span>               <span class="comment">//协议类型选择dokodemo-door，透明代理就用这个</span></span><br><span class="line">    <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">10000</span><span class="punctuation">,</span>                             <span class="comment">//监听的端口</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;network&quot;</span><span class="punctuation">:</span> <span class="string">&quot;tcp,udp&quot;</span><span class="punctuation">,</span>                    <span class="comment">//传输协议，只支持tcp和udp，icmp是不支持的，所以用来ping被墙的ip也是没用的</span></span><br><span class="line">      <span class="attr">&quot;followRedirect&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span>                   <span class="comment">//此处必须是开启，否则它将不能识别由iptables转发来的流量</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;sniffing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;enabled&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span>                         <span class="comment">//此处可以开启流量侦测，一定程度上解决DNS污染</span></span><br><span class="line">      <span class="attr">&quot;destOverride&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;http&quot;</span><span class="punctuation">,</span><span class="string">&quot;tls&quot;</span><span class="punctuation">]</span>           <span class="comment">//流量侦测的协议类型，主要是网络上最常用的两种http和tls</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span>                                           <span class="comment">//至此，透明代理所需要的数据入口就配置完成了</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;socks&quot;</span><span class="punctuation">,</span>                       <span class="comment">//这是我所配置的socks代理协议，此处兼容socks5，socks4e，socks4，它们是什么？不用管，这样配置就对了</span></span><br><span class="line">    <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">1080</span><span class="punctuation">,</span>                              <span class="comment">//socks默认监听的端口1080</span></span><br><span class="line">    <span class="attr">&quot;listen&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.0.0&quot;</span><span class="punctuation">,</span>                       <span class="comment">//监听的地址，默认情况下是本机回环&quot;127.0.0.1&quot;，如果想要局域网内的设备也连接这个代理，使用&quot;0.0.0.0&quot;，此处需要搞明白&quot;127.0.0.1&quot;和&quot;0.0.0.0&quot;的区别</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;auth&quot;</span><span class="punctuation">:</span> <span class="string">&quot;noauth&quot;</span><span class="punctuation">,</span>                        <span class="comment">//如果不需要对连接进行身份认证，那么就用&quot;noauth&quot;，一般情况下都是在局域网里面使用的，就用不认证吧！</span></span><br><span class="line">      <span class="attr">&quot;udp&quot;</span><span class="punctuation">:</span> <span class="keyword">false</span>                             <span class="comment">//udp就不开启了，此处默认不开启，可以省略</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;sniffing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;enabled&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span>                         <span class="comment">//同样的开启流量侦测</span></span><br><span class="line">      <span class="attr">&quot;destOverride&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;http&quot;</span><span class="punctuation">,</span><span class="string">&quot;tls&quot;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;socksin&quot;</span>                           <span class="comment">//为这个socks代理添加一个标记，方便后期在**routing**中进行调用</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>inbounds</strong>部分就结束了，此处主要是对局域网和本机提供服务，被动的对局域网内或者本机的连接进行响应；</p>
+<h4 id="与远程服务器建立连接（与梯子建立连接）"><a href="#与远程服务器建立连接（与梯子建立连接）" class="headerlink" title="与远程服务器建立连接（与梯子建立连接）"></a>与远程服务器建立连接（与梯子建立连接）</h4><blockquote>
+<p>V2Ray对外连接的配置主要集中在<strong>outbounds</strong>部分，此处集中了梯子的连接，可以是一个或者多个，默认情况下如果没有在<strong>routing</strong>部分进行指定，系统都会使用由上至下第一个对外出口作为默认出口使用，所以排在第一个的具有举足轻重的地位，以下将会放上我自己的配置：</p>
+</blockquote>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;outbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;vmess&quot;</span><span class="punctuation">,</span>                       <span class="comment">//对外的协议类型，一般与vps对接的话都是用的vmess协议，此处先不考虑这个协议是否靠谱，你只要把它当成是一种加密方式即可</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;vnext&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;address&quot;</span><span class="punctuation">:</span> <span class="string">&quot;域名或IP&quot;</span><span class="punctuation">,</span>               <span class="comment">//远程服务的域名或者IP，建议使用域名，可以通过tls进行混淆以欺骗gfw对数据流量的干扰，就是ssr曾经引以为豪的东西</span></span><br><span class="line">          <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">443</span><span class="punctuation">,</span>                        <span class="comment">//tls一般都是用443端口的，此处我也使用了443端口</span></span><br><span class="line">          <span class="attr">&quot;users&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="punctuation">&#123;</span></span><br><span class="line">              <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;65a8ee27-b88b-0530-64d8-aad37d4980d8&quot;</span><span class="punctuation">,</span>     <span class="comment">//uuid就类似于密码，可以使用`v2ctl uuid`命令生成，当然此处需要和服务端相同</span></span><br><span class="line">              <span class="attr">&quot;alterId&quot;</span><span class="punctuation">:</span> <span class="number">64</span><span class="punctuation">,</span>                  <span class="comment">//此处也需要和服务端相同</span></span><br><span class="line">              <span class="attr">&quot;security&quot;</span><span class="punctuation">:</span> <span class="string">&quot;auto&quot;</span>              <span class="comment">//此处的加密一般是在客户端指定的，服务端会根据客户端的设置情况自动进行相应的加密，但tls本身也是一种加密，个人认为如果使用了tls混淆的话此处直接none即可</span></span><br><span class="line">            <span class="punctuation">&#125;</span></span><br><span class="line">          <span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;streamSettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span>                       <span class="comment">//这个项目对通讯协议进行一些微调</span></span><br><span class="line">      <span class="attr">&quot;network&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ws&quot;</span><span class="punctuation">,</span>                        <span class="comment">//使用websocket连接</span></span><br><span class="line">      <span class="attr">&quot;security&quot;</span><span class="punctuation">:</span> <span class="string">&quot;tls&quot;</span><span class="punctuation">,</span>                      <span class="comment">//tls混淆加密</span></span><br><span class="line">      <span class="attr">&quot;wsSettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;connectionReuse&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;path&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/ray&quot;</span>                        <span class="comment">//当访问这个目录的时候使用websocket连接，由于官方手册中使用了这个目录，很容易被针对，个人建议改成一个字符串或者别的什么内容</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;proxy&quot;</span>                            <span class="comment">//给这个出口加个标签</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;freedom&quot;</span><span class="punctuation">,</span>                    <span class="comment">//直连出口</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span>                           <span class="comment">//没啥需要设置的</span></span><br><span class="line">    <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span>                           <span class="comment">//标签不要忘记，下面的路由部分会用到的</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blackhole&quot;</span><span class="punctuation">,</span>                  <span class="comment">//黑洞，你只要敢来我就敢把你全吞了，一般用来做广告屏蔽等操作</span></span><br><span class="line">    <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span>                           <span class="comment">//依然不需要设置些啥</span></span><br><span class="line">    <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blocked&quot;</span>                          <span class="comment">//标签不能忘</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>outbounds</strong>的配置大致上就是这样的，此处配置了三个出口</p>
+<h4 id="DNS服务器配置"><a href="#DNS服务器配置" class="headerlink" title="DNS服务器配置"></a>DNS服务器配置</h4><blockquote>
+<p>如果没有添加DNS服务器的配置的话，V2Ray会自动使用系统配置好的地址，由于我已经解决了DNS污染，所以我完全可以在此处进行省略，但考虑到方案并不是只有一种，多一条路多一种选择，还是稍微举个例子吧！</p>
+</blockquote>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;dns&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;servers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;8.8.8.8&quot;</span><span class="punctuation">,</span>                                <span class="comment">//谷歌的</span></span><br><span class="line">    <span class="string">&quot;9.9.9.9&quot;</span><span class="punctuation">,</span>                                <span class="comment">//IBM的</span></span><br><span class="line">    <span class="string">&quot;localhost&quot;</span>                               <span class="comment">//本机配置好的，如果是我的软路由的话污染已经解决了</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>此处直接使用了最简单的配置，使用这样的配置的话，当用户使用socks5代理进行上网时，会优先使用谷歌和IBM的服务器进行域名解析，如果上述的服务器都挂了，那么就使用系统自带的DNS服务器进行解析，v2ray的内置DNS功能还是很强大的，受限于篇幅，此处就不展开了</p>
+<h4 id="强大的路由功能"><a href="#强大的路由功能" class="headerlink" title="强大的路由功能"></a>强大的路由功能</h4><blockquote>
+<p>一般的科学上网工具除了提供分流外基本上不会再有别的功能了，而V2Ray可通过<strong>routing</strong>这个功能模块提供类似于<strong>Linux防火墙</strong>一样的功能，根据配置好的规则选择对外出口，负载均衡，识别连接，屏蔽广告，基于端口匹配等等，当然这些功能对于初学者而言简直就是天书，本次也不会详细去说明，但大家只需要知道一点，那就是善用<strong>routing</strong>模块</p>
+</blockquote>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;routing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;domainStrategy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;IPIfNonMatch&quot;</span><span class="punctuation">,</span>           <span class="comment">//必要的选项，如果匹配不到就直接解析成ip</span></span><br><span class="line">  <span class="attr">&quot;rule&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;domain&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span>                             <span class="comment">//匹配域名</span></span><br><span class="line">        <span class="string">&quot;geosite:category-ads-all&quot;</span>            <span class="comment">//匹配常见广告域名</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blocked&quot;</span>                <span class="comment">//利用标记将出口设置为“黑洞”，相当于对广告进行屏蔽</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;domain&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="string">&quot;geosite:cn&quot;</span>                         <span class="comment">//匹配国内的域名</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span>                 <span class="comment">//满足这个规则的网址直连不做操作</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;ip&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="string">&quot;geoip:cn&quot;</span>                            <span class="comment">//匹配国内的ip</span></span><br><span class="line">        <span class="string">&quot;geoip:private&quot;</span>                       <span class="comment">//匹配常用内网的ip</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span>                 <span class="comment">//满足此规则的ip直连</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>以上的配置屏蔽了一些常用的广告域名，同时不代理内网IP、中国区IP、中国区域名、常见的没被墙的域名，<code>而没有手动指定的流量会使用默认的一条规则，这个默认规则不需要进行手动设置，默认是**inbounds**中配置的第一条出口</code>；这个模块下的匹配规则和Linux防火墙类似，逐条依次进行匹配，需要屏蔽的放在上面，之后的规则会依次匹配，V2Ray的规则匹配也是这样的顺序，由上至下，哪个在上面哪个先匹配，一旦匹配到就跳出规则，所以在配置路由的时候需要好好规划好顺序</p>
+<h4 id="完整配置文件"><a href="#完整配置文件" class="headerlink" title="完整配置文件"></a>完整配置文件</h4><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;log&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;loglevel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;info&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;access&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/var/log/v2ray/access.log&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;error&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/var/log/v2ray/error.log&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;inbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dokodemo-door&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">10000</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;network&quot;</span><span class="punctuation">:</span> <span class="string">&quot;tcp,udp&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;followRedirect&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;sniffing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;enabled&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;domainOverride&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;http&quot;</span><span class="punctuation">,</span><span class="string">&quot;tls&quot;</span><span class="punctuation">]</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;socks&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">1080</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;listen&quot;</span><span class="punctuation">:</span> <span class="string">&quot;0.0.0.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;auth&quot;</span><span class="punctuation">:</span> <span class="string">&quot;noauth&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;udp&quot;</span><span class="punctuation">:</span> <span class="keyword">false</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;socksin&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;outbounds&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;vmess&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;vnext&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">          <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;address&quot;</span><span class="punctuation">:</span> <span class="string">&quot;xxxxxxx&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;port&quot;</span><span class="punctuation">:</span> <span class="number">443</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;users&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">              <span class="punctuation">&#123;</span></span><br><span class="line">                <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;65a8ee27-b88b-0530-64d8-aad37d4980d8&quot;</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;alterId&quot;</span><span class="punctuation">:</span> <span class="number">64</span><span class="punctuation">,</span></span><br><span class="line">                <span class="attr">&quot;security&quot;</span><span class="punctuation">:</span> <span class="string">&quot;auto&quot;</span></span><br><span class="line">              <span class="punctuation">&#125;</span></span><br><span class="line">            <span class="punctuation">]</span></span><br><span class="line">          <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;streamSettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;network&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ws&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;security&quot;</span><span class="punctuation">:</span> <span class="string">&quot;tls&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;wsSettings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;connectionReuse&quot;</span><span class="punctuation">:</span> <span class="keyword">true</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;path&quot;</span><span class="punctuation">:</span> <span class="string">&quot;/ray&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;proxy&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;freedom&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;protocol&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blackhole&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;settings&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;tag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blocked&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;dns&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;servers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;8.8.8.8&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;9.9.9.9&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="string">&quot;localhost&quot;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;routing&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;domainStrategy&quot;</span><span class="punctuation">:</span> <span class="string">&quot;IPIfNonMatch&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;rule&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;domain&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">          <span class="string">&quot;geosite:category-ads-all&quot;</span></span><br><span class="line">        <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;blocked&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;domain&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">          <span class="string">&quot;geosite:cn&quot;</span></span><br><span class="line">        <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;field&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;ip&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">          <span class="string">&quot;geoip:cn&quot;</span></span><br><span class="line">          <span class="string">&quot;geoip:private&quot;</span></span><br><span class="line">        <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;outboundTag&quot;</span><span class="punctuation">:</span> <span class="string">&quot;direct&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>在上述的配置文件中我增加了一个log模块，主要是为了进行故障分析，在<code>/var/log/v2ray</code>目录下生成两个日志文件，方便遇到问题之后进行分析，整个配置文件除了科学上网部分没有配置外，其它都能实际使用，这个部分是可以当作模板进行使用的</p>
+<p>当然使用vim进行文本编辑的话对于普通用户而言实在是太痛苦了，那不妨把它拷贝下来在本地计算机上面进行编辑，我使用的是windows平台上最好的文本编辑器之一的<a target="_blank" rel="noopener" href="https://code.visualstudio.com/">vscode</a>，首先先把配置文件下载到本地：</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/18.png" class="" title="v2 07">
+
+<p>如果你使用的是xshell这个ssh工具的话，直接安装<strong>lrzsz</strong>这个工具即可，安装完之后执行<code>sz /etc/v2ray/config.json</code>，然后选择保存的位置就能将配置文件下载到本地了</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/17.png" class="" title="v2 08">
+
+<p>如果没有使用上述工具的话，使用<a target="_blank" rel="noopener" href="https://winscp.net/eng/index.php">winscp</a>也是可以的，或者如果是windows 10操作系统的话，直接使用内置的scp命令也是可以将文件下载到本地的，打开powershell或者cmd，执行<code>scp root@172.16.1.50:/etc/v2ray/config.json d:\desktop\config.json.v2</code>，这样就复制到我的桌面了</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/25.png" class="" title="v2 09">
+
+<p>之后就用<strong>vscode</strong>进行编辑，由于我下载下来的时候修改了文件名，在后面加上了一个v2后缀（这一步并不是必须的，如果直接下载下了json后缀的，就不需要以下步骤）</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/26.png" class="" title="v2 10">
+<img src="/2019/09/16/linux-router-07-over-the-gfw/27.png" class="" title="v2 11">
+<img src="/2019/09/16/linux-router-07-over-the-gfw/28.png" class="" title="v2 12">
+
+<p>修改好配置文件之后就可以上传到服务器了，使用scp的话顺序改一下就好</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/30.png" class="" title="v2 13">
+
+<p><code>cat /etc/v2ray/config.json.v2 &gt; /etc/v2ray/config.json</code>即可</p>
+<p>当把配置文件修改好之后，记得检测一下文件格式是否有问题，执行命令<code>/usr/bin/v2ray/v2ray --test /etc/v2ray/config.json</code>如果没问题，直接保存退出（如果使用vscode进行编辑的话，基本上不会有多少问题），之后执行<code>systemctl restart v2ray</code>重启服务即可</p>
+<h3 id="5-配置防火墙规则"><a href="#5-配置防火墙规则" class="headerlink" title="5.配置防火墙规则"></a>5.配置防火墙规则</h3><blockquote>
+<p>刚刚配置好的V2Ray只能提够一个透明代理的入口，它还没有那么强大控制数据流量走向，接下来的事情就交给防火墙吧，至于是什么原理，小孩子知道那么多干啥，照着做就是了</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接对tcp动手（不知道tcp是啥玩意的也不用在意，照着做就是了）</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">新建一条叫做v2的新链</span></span><br><span class="line">iptables -t nat -N v2</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">忽略掉远程服务器的地址，避免出现环回</span></span><br><span class="line">iptables -t nat -A v2 -d vps地址 -j RETURN</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">排除掉内网地址，防止访问局域网地址的时候也被代理</span></span><br><span class="line">iptables -t nat -A v2 -d 172.16.0.0/12 -j RETURN</span><br><span class="line">iptables -t nat -A v2 -d 192.168.0.0/16 -j RETURN</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">除已经被排除的地址，其它的全部交给V2ray进行处理，此处全部转发到了10000端口</span></span><br><span class="line">iptables -t nat -A v2 -p tcp -j REDIRECT --to-ports 10000</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">这一句会将系统接受到的所有不是本机为地址的数据全部转发到v2链</span></span><br><span class="line">iptables -t nat -A PREROUTING -p tcp -j v2</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">这句可以对本机的流量进行代理，个人觉得没有必要，有些时候反而容易出现问题</span></span><br><span class="line">iptables -t nat -A OUTPUT -p tcp -j v2</span><br></pre></td></tr></table></figure>
+
+<img src="/2019/09/16/linux-router-07-over-the-gfw/32.png" class="" title="v2 14">
+
+<blockquote>
+<p>请忽略中间发生的输入错误<br>此处我只配置了TCP流量部分，UDP部分我觉得普通用户暂时用不到，一般游戏用户会比较需要，但v2ray对游戏的支持并不是很好，如果有兴趣的话我会在下一篇文章中进行说明</p>
+</blockquote>
+<p>执行上述命令之后呢，墙基本上已经不能锁住你了</p>
+<h2 id="配置完验证一下"><a href="#配置完验证一下" class="headerlink" title="配置完验证一下"></a>配置完验证一下</h2><hr>
+<h3 id="验证对外的梯子是否通了"><a href="#验证对外的梯子是否通了" class="headerlink" title="验证对外的梯子是否通了"></a>验证对外的梯子是否通了</h3><blockquote>
+<p>我在入口部分除了建立了透明代理，同时也配置了一个socks5代理，此处就用这个来验证一下对外的连接是否正常</p>
+</blockquote>
+<p><code>curl -x socks5://127.0.0.1:1080 google.com</code>这个命令执行之后如果能出现如下的界面就说明对外的梯子出口是连接成功的，V2Ray可以提供科学上网的功能，此处没问题的话即可进行下一步</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/31.png" class="" title="v2 16">
+<img src="/2019/09/16/linux-router-07-over-the-gfw/33.png" class="" title="v2 15">
+
+<blockquote>
+<p>如果有问题的话进行下述的排查：</p>
+</blockquote>
+<h4 id="服务器和客户端之间的时间差不能超过一分钟"><a href="#服务器和客户端之间的时间差不能超过一分钟" class="headerlink" title="服务器和客户端之间的时间差不能超过一分钟"></a><strong>服务器和客户端之间的时间差不能超过一分钟</strong></h4><p>查看两者之间的时间差，如果超过了一分钟就无法正确的建立连接，可以通过自动同步时间解决</p>
+<h4 id="查看配置文件中的域名，uuid，端口号等有没有存在差异"><a href="#查看配置文件中的域名，uuid，端口号等有没有存在差异" class="headerlink" title="查看配置文件中的域名，uuid，端口号等有没有存在差异"></a><strong>查看配置文件中的域名，uuid，端口号等有没有存在差异</strong></h4><p>仔细对比服务端和客户端之间的配置项目，常见的错误主要是uuid和端口号不对应</p>
+<h3 id="透明代理测试"><a href="#透明代理测试" class="headerlink" title="透明代理测试"></a>透明代理测试</h3><blockquote>
+<p>要测试其实很简单，打开一台电脑，通过自建的软路由上网，看看能不能科学上网就可以判断出来了</p>
+</blockquote>
+<p>此处我依然使用我一直使用的manjrao进行测试，打开火狐，打开谷歌等不存在的网站，看看能否正常打开，然后再放个<a target="_blank" rel="noopener" href="https://youtube.com/">YOUTUBE</a>看是否可以正常播放，如果没问题的话那就说明你配置成功了，接下来该干嘛干嘛了，世界离你就差延时那点距离了</p>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/34.png" class="" title="v2 17">
+
+<blockquote>
+<p>打开<a target="_blank" rel="noopener" href="http://ip111.cn/">ip111.cn</a>确认一下是否能够正常访问外网，只要后面两个显示的是你vps地址就说明是正常了</p>
+</blockquote>
+<img src="/2019/09/16/linux-router-07-over-the-gfw/35.png" class="" title="v2 18">
+
+<h2 id="规则的自动加载"><a href="#规则的自动加载" class="headerlink" title="规则的自动加载"></a>规则的自动加载</h2><hr>
+<p>防火墙规则过去在网卡的开关过程中就能自动进行保存和加载，如果怕防火墙规则丢失的话，建议手动保存一下防火墙规则</p>
+<p><code>iptables-save &gt; /root/iptables.rule</code>就可以了，这样开机就会自动加载了，当然你如果搞错了防火墙的输入顺序就有可能会出问题了</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><hr>
+<p>本篇内容中涉及到了比较多的V2Ray配置文件实例，虽然看上去很多，但并没有深入去分析每一个语句的作用，大家看看就好，直接使用最后的实例即可，如果想要深入的了解的话，我会在下篇做出比较详细的分析，先劝个退，不认真学习的话真的会搞不懂的哦，越看越迷糊都有可能哦！</p>
+<p>对比两年前初次使用V2Ray，感觉官方文档完善了好多，但依然有很多坑需要去解决，下期预告，对于配置文件的详细分析（希望自己的拖延症不会像这次这样严重）！</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
+<ul>
+<li><strong>2019.09.16</strong> 初稿</li>
+<li><strong>2019.09.25</strong> 根据测试结构完善大纲</li>
+<li><strong>2019.10.18</strong> 磨磨蹭蹭的把坑填上，应该是可以上线了</li>
+<li><strong>2020.02.23</strong> 修正部分错误</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/29/linux-router-06-block-ads-with-pi-hole/" rel="prev" title="Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇">
+      <i class="fa fa-chevron-left"></i> Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/10/19/linux-router-08-v2ray-advanced-configuration/" rel="next" title="Linux路由补完计划补充篇 分流及路由优化">
+      Linux路由补完计划补充篇 分流及路由优化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%84%E6%88%90"><span class="nav-number">2.</span> <span class="nav-text">构成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%9F%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E5%A7%8B%E9%85%8D%E7%BD%AE"><span class="nav-number">4.</span> <span class="nav-text">开始配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%BB%99%E7%B3%BB%E7%BB%9F%E9%85%8D%E7%BD%AE%E4%BB%A3%E7%90%86"><span class="nav-number">4.1.</span> <span class="nav-text">1.给系统配置代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8V2Ray%E5%AE%98%E6%96%B9%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85%E8%84%9A%E6%9C%AC%E8%BF%9B%E8%A1%8C%E5%AE%89%E8%A3%85"><span class="nav-number">4.2.</span> <span class="nav-text">2.使用V2Ray官方一键安装脚本进行安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-V2Ray%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%AF%B4%E6%98%8E"><span class="nav-number">4.3.</span> <span class="nav-text">3.V2Ray配置文件说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%BC%80%E5%90%AF%E9%80%8F%E6%98%8E%E4%BB%A3%E7%90%86"><span class="nav-number">4.4.</span> <span class="nav-text">4.修改配置文件开启透明代理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E9%80%8F%E6%98%8E%E4%BB%A3%E7%90%86%E7%9B%91%E5%90%AC%E5%9C%A810000%E7%AB%AF%E5%8F%A3"><span class="nav-number">4.4.1.</span> <span class="nav-text">配置透明代理监听在10000端口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8E%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%EF%BC%88%E4%B8%8E%E6%A2%AF%E5%AD%90%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5%EF%BC%89"><span class="nav-number">4.4.2.</span> <span class="nav-text">与远程服务器建立连接（与梯子建立连接）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DNS%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE"><span class="nav-number">4.4.3.</span> <span class="nav-text">DNS服务器配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%BA%E5%A4%A7%E7%9A%84%E8%B7%AF%E7%94%B1%E5%8A%9F%E8%83%BD"><span class="nav-number">4.4.4.</span> <span class="nav-text">强大的路由功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">4.4.5.</span> <span class="nav-text">完整配置文件</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E9%85%8D%E7%BD%AE%E9%98%B2%E7%81%AB%E5%A2%99%E8%A7%84%E5%88%99"><span class="nav-number">4.5.</span> <span class="nav-text">5.配置防火墙规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E5%AE%8C%E9%AA%8C%E8%AF%81%E4%B8%80%E4%B8%8B"><span class="nav-number">5.</span> <span class="nav-text">配置完验证一下</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E5%AF%B9%E5%A4%96%E7%9A%84%E6%A2%AF%E5%AD%90%E6%98%AF%E5%90%A6%E9%80%9A%E4%BA%86"><span class="nav-number">5.1.</span> <span class="nav-text">验证对外的梯子是否通了</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B9%8B%E9%97%B4%E7%9A%84%E6%97%B6%E9%97%B4%E5%B7%AE%E4%B8%8D%E8%83%BD%E8%B6%85%E8%BF%87%E4%B8%80%E5%88%86%E9%92%9F"><span class="nav-number">5.1.1.</span> <span class="nav-text">服务器和客户端之间的时间差不能超过一分钟</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%B8%AD%E7%9A%84%E5%9F%9F%E5%90%8D%EF%BC%8Cuuid%EF%BC%8C%E7%AB%AF%E5%8F%A3%E5%8F%B7%E7%AD%89%E6%9C%89%E6%B2%A1%E6%9C%89%E5%AD%98%E5%9C%A8%E5%B7%AE%E5%BC%82"><span class="nav-number">5.1.2.</span> <span class="nav-text">查看配置文件中的域名，uuid，端口号等有没有存在差异</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%8F%E6%98%8E%E4%BB%A3%E7%90%86%E6%B5%8B%E8%AF%95"><span class="nav-number">5.2.</span> <span class="nav-text">透明代理测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD"><span class="nav-number">6.</span> <span class="nav-text">规则的自动加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2"><span class="nav-number">8.</span> <span class="nav-text">历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

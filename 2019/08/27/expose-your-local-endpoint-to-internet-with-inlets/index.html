@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 随着IPV4地址的不断匮乏，现在很多电信运营商早就开始将用户的上网IP私网化，即我们常说的内网地址，这样的地址是经过NAT的，很多用户通过运营商提供的内网地址共享一个公网地址进行上网，运营商的IP资源节省了，普通用户也感觉不出什么区别，但对于需要外部访问家中或者公司中一些资源的用户来说，这就是灾难，也许有人说你可以打电话投诉来获取公网IP，电信联通可能还行得通，对于大内网的移动就无法实现了，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="又一款内网穿透工具——inlets">
+<meta property="og:url" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 随着IPV4地址的不断匮乏，现在很多电信运营商早就开始将用户的上网IP私网化，即我们常说的内网地址，这样的地址是经过NAT的，很多用户通过运营商提供的内网地址共享一个公网地址进行上网，运营商的IP资源节省了，普通用户也感觉不出什么区别，但对于需要外部访问家中或者公司中一些资源的用户来说，这就是灾难，也许有人说你可以打电话投诉来获取公网IP，电信联通可能还行得通，对于大内网的移动就无法实现了，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/01.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/03.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/04.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/02.png">
+<meta property="article:published_time" content="2019-08-27T23:01:48.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.169Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Tools">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/01.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>又一款内网穿透工具——inlets | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          又一款内网穿透工具——inlets
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-27 23:01:48" itemprop="dateCreated datePublished" datetime="2019-08-27T23:01:48+00:00">2019-08-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>随着IPV4地址的不断匮乏，现在很多电信运营商早就开始将用户的上网IP私网化，即我们常说的内网地址，这样的地址是经过NAT的，很多用户通过运营商提供的内网地址共享一个公网地址进行上网，运营商的IP资源节省了，普通用户也感觉不出什么区别，但对于需要外部访问家中或者公司中一些资源的用户来说，这就是灾难，也许有人说你可以打电话投诉来获取公网IP，电信联通可能还行得通，对于大内网的移动就无法实现了，为了解决访问内部资源的这个问题，内网穿透工具应运而生，内网穿透工具也如雨后春笋一般扎堆出现了<strong>Ngrok，Frp，Serveo</strong>乃至已经商业化很成功的花生壳，这类工具虽然已经很成熟了，但这并不是本篇分享的重点。通过github的推荐，我发现了一个有趣的内网穿透工具——<a target="_blank" rel="noopener" href="https://github.com/alexellis/inlets">inlets</a></p>
+<span id="more"></span>
+
+<h2 id="为啥推荐它"><a href="#为啥推荐它" class="headerlink" title="为啥推荐它"></a>为啥推荐它</h2><hr>
+<p>有时候第一眼的感觉很重要，它就是那个吸引我的工具，虽然我现在的主力依然是Frp，但我真的觉得inlets值得一试</p>
+<p>inlets 结合了反向代理和 websocket 隧道，通过出口节点将内部的http服务暴露给公网。出口节点可以是 VPS 或具有 IPv4 IP 地址的任何其他计算机，与SSL结合使用时inlets可以与任何支持CONNECT的内网HTTP代理一起使用</p>
+<h2 id="它能做啥"><a href="#它能做啥" class="headerlink" title="它能做啥"></a>它能做啥</h2><hr>
+<blockquote>
+<p>开发者<a target="_blank" rel="noopener" href="https://github.com/alexellis">Alex Ellis</a>更新还是很频繁的，由1.x升级到2.x之后，作者直接声称其完全可以胜任生产环境，只不过在部署之前建议先测试一下</p>
+</blockquote>
+<ul>
+<li>基础功能：</li>
+</ul>
+<p>1.根据客户端设置在远程服务器上创建端口<br>2.基于域名进行端口复用<br>3.利用<strong>SSL over websocket</strong>进行安全的加密通信<br>4.断线重连<br>5.支持身份认证<br>6.多平台支持<br>7.与Docker和Kubernetes集成<br>8.原生跨平台支持，包括ARMHF和ARM64架构<br>9.除HTTP(s)以外，还支持在隧道内传输Websocket流量</p>
+<ul>
+<li>计划功能支持：</li>
+</ul>
+<p>1.自动配置DNS&#x2F;A记录<br>2.基于 Azure ACI 和 AWS Fargate，以 Serverless 容器的方式运行「出口节点」。<br>3.通过 DNS01 challenge 使用 LetsEncrypt Staging 或 Production 签发证<br>…</p>
+<p>虽然此时可以穿透的协议还只局限于HTTP或者HTTPS?，但作者还是愿意在今后的更新中添加对纯TCP流量的支持；未来肯定会越来越美好，有能力的小伙伴不妨也为其提供自己的一份力量</p>
+<h2 id="运行原理"><a href="#运行原理" class="headerlink" title="运行原理"></a>运行原理</h2><hr>
+<h3 id="原理图"><a href="#原理图" class="headerlink" title="原理图"></a>原理图</h3><img src="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/01.png" class="" title="inlets 01">
+
+<h3 id="流程说明"><a href="#流程说明" class="headerlink" title="流程说明"></a>流程说明</h3><ul>
+<li>假设将服务器的域名设定为”<a target="_blank" rel="noopener" href="http://www.site.com&quot;,此时inlets作为服务端监听在服务器的80端口,根据客户发起的协议匹配不同规则/">www.site.com&quot;，此时inlets作为服务端监听在服务器的80端口，根据客户发起的协议匹配不同规则</a></li>
+<li>而客户端使用websocket协议对服务端发起通讯，通讯可以使用加密或者不加密两种模式进行，这完全取决于服务端是否使用SSL加密</li>
+<li>客户端和服务器通过共享密钥进行身份认证，认证通过即建立起了连接</li>
+<li>此时，客户端设定的内网地址和端口就和服务端建立起了一条隧道</li>
+<li>隧道建立后，服务端的80端口就相当于映射了客户端本地的127.0.0.1:3000</li>
+<li>当用户访问”<a target="_blank" rel="noopener" href="http://www.site.com&quot;这个网址时,就相当于访问内网中的3000端口/">www.site.com&quot;这个网址时，就相当于访问内网中的3000端口</a></li>
+</ul>
+<p>稍微概括一下就是类似于如下的流程</p>
+<p>本地应用端口 &lt;&#x3D;&#x3D;http(s)&#x2F;ws(s)&#x3D;&#x3D;&gt; inlets(client) &lt;&#x3D;&#x3D;ws(s)&#x3D;&#x3D;&gt; inlets(server) &lt;&#x3D;&#x3D;http(s)&#x3D;&#x3D;&gt; 用户浏览器</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><hr>
+<blockquote>
+<p>光讲原理好像也没啥意义，那就用个人的一个实例来说明吧！</p>
+</blockquote>
+<h3 id="实例说明"><a href="#实例说明" class="headerlink" title="实例说明"></a>实例说明</h3><blockquote>
+<p>inlets之间使用websocket进行通讯，如果需要证书加密的话，即ssl加密，那中间就需要套接一个web服务器，它可以是nginx，也可以是caddy，此处使用配置相对简单的caddy进行演示，当然选择它的还有一个原因就是它支持自动签发证书，由于google的“恶意推广”，https网站将成为主流，给网站配置个证书也不错</p>
+</blockquote>
+<h3 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h3><ul>
+<li>需要拥有一台拥有公网IP的主机，如果主机在国内，并且还需要开放80端口和443端口，还需要解决备案的问题</li>
+<li>拥有一个域名，并且可以随意修改DNS解析，免费的，收费的都可以</li>
+<li>耐心很重要，由于涉及到两台主机的操作，暂时还没有一键脚本可以使用</li>
+<li>服务端和客户端只能使用64位的系统，当然现在也已经支持arm架构的硬件设备进行安装了</li>
+</ul>
+<h3 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h3><blockquote>
+<p>也许这就是我自己的瞎折腾，但是希望能给大家以启发</p>
+</blockquote>
+<ul>
+<li>域名：etspace.xyz</li>
+<li>服务器公网ip：<del>165.227.56.252</del></li>
+<li>本地客户端主机：<del><a target="_blank" rel="noopener" href="http://wiki.friendlyarm.com/wiki/index.php/NanoPi_NEO2/zh#.E4.BD.BF.E7.94.A8.E5.BC.80.E6.BA.90.E7.A4.BE.E5.8C.BA.E4.B8.BB.E7.BA.BFBSP">NanoPi NEO2</a>(很不幸被我买了)</del> ESXi主机上文件存储服务器</li>
+<li>需要对外发布的服务：<del>自用黑裙登录页面以及软路由netdata状态页</del> 软路由netdata状态页及routeros登陆页</li>
+</ul>
+<img src="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/03.png" class="" title="inlets 03">
+<img src="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/04.png" class="" title="inlets 04">
+
+<h4 id="配置DNS解析"><a href="#配置DNS解析" class="headerlink" title="配置DNS解析"></a>配置DNS解析</h4><p>vps主机肯定是有的，此处就不写怎么购买了，现在进入你的DNS管理后台，修改域名的解析地址，我使用的是<a target="_blank" rel="noopener" href="https://he.net/">he.net</a>，此时进入后台，添加相应的解析记录</p>
+<blockquote>
+<p>此处需要设置三个解析记录：</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="center">域名</th>
+<th align="center">解析类型</th>
+<th align="center">计划用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">inlets.etspace.xyz</td>
+<td align="center">A</td>
+<td align="center">用于主控制通信</td>
+</tr>
+<tr>
+<td align="center">routeros.etsapce.xyz</td>
+<td align="center">A</td>
+<td align="center">映射本地routeros登陆界面</td>
+</tr>
+<tr>
+<td align="center">netdata.etspace.xyz</td>
+<td align="center">A</td>
+<td align="center">映射本地netdata状态界面</td>
+</tr>
+</tbody></table>
+<h4 id="服务端上inlets的安装和配置"><a href="#服务端上inlets的安装和配置" class="headerlink" title="服务端上inlets的安装和配置"></a>服务端上inlets的安装和配置</h4><blockquote>
+<p>由于inlets是使用go语言进行编写的，只需要下载对应的二进制文件即可，进入release中选择合适的平台进行下载，重新登录项目地址，发现作者已经增加了不少的功能，比较可惜的是全功能的内网穿透工具inlets-pro并不是免费的，如果有能力还是支持一下作者，而对于普通用户而言，inlets已经可以满足大部分功能了</p>
+</blockquote>
+<ul>
+<li>安装inlets</li>
+</ul>
+<p>官方一键命令<code>curl -sLS https://get.inlets.dev | sh</code></p>
+<blockquote>
+<p>此处也可以使用作者新增了一个工具<a target="_blank" rel="noopener" href="https://github.com/inlets/inletsctl">inletsctl</a>，并且能通过这个工具进行更新及配置，一般情况我使用它来进行intels的安装，不再需要每次登录github进行下载更新了</p>
+<ul>
+<li>安装inletsctl</li>
+</ul>
+<p>使用官方命令一键安装<code>curl -sLSf https://inletsctl.inlets.dev | sh</code><br>此处图片—-</p>
+<ul>
+<li>通过inletsctl 下载安装inlets</li>
+</ul>
+<p><code>inletsctl download inlets</code>进行安装，inlets会被自动安装到<code>/usr/local/bin/</code>目录下，此时就可以适应inlets命令了</p>
+</blockquote>
+<h5 id="在执行后续的操作之前，首先建议了解一下inlets的命令和参数"><a href="#在执行后续的操作之前，首先建议了解一下inlets的命令和参数" class="headerlink" title="在执行后续的操作之前，首先建议了解一下inlets的命令和参数"></a>在执行后续的操作之前，首先建议了解一下inlets的命令和参数</h5><blockquote>
+<p>通过help命令直接查看</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">inlets --help</span><br><span class="line"></span><br><span class="line">Inlets combines a reverse proxy and websocket tunnels to expose your internal</span><br><span class="line">and development endpoints to the public Internet via an exit-node.</span><br><span class="line"></span><br><span class="line">An exit-node may be a 5-10 USD VPS or any other computer with an IPv4 IP address.</span><br><span class="line">You can also use inlets to bridge connect between private networks.</span><br><span class="line"></span><br><span class="line">It is strongly recommended to put a reverse proxy with TLS/SSL enabled such as</span><br><span class="line">Nginx or Caddy in front of your inlets server to enable an encrypted tunnel.</span><br><span class="line"></span><br><span class="line">See: https://github.com/inlets/inlets for more information.</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  inlets [flags]</span><br><span class="line">  inlets [command]</span><br><span class="line"></span><br><span class="line">Available Commands:</span><br><span class="line">  client      Start the tunnel client.</span><br><span class="line">  help        Help about any command</span><br><span class="line">  server      Start the tunnel server.</span><br><span class="line">  version     Display the clients version information.</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -h, --help   help for inlets</span><br><span class="line"></span><br><span class="line">Use &quot;inlets [command] --help&quot; for more information about a command.</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">inlets server --help</span><br><span class="line">Start the tunnel server on a machine with a publicly-accessible IPv4 IP</span><br><span class="line">address such as a VPS.</span><br><span class="line"></span><br><span class="line">Example: inlets server -p 80</span><br><span class="line">Example: inlets server --port 80 --control-port 8080</span><br><span class="line"></span><br><span class="line">Note: You can pass the --token argument followed by a token value to both the</span><br><span class="line">server and client to prevent unauthorized connections to the tunnel.</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  inlets server [flags]</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -c, --control-port int             control port for tunnel (default 8080)</span><br><span class="line">      --disable-transport-wrapping   disable wrapping the transport that removes CORS headers for example</span><br><span class="line">  -h, --help                         help for server</span><br><span class="line">  -p, --port int                     port for server and for tunnel (default 8000)</span><br><span class="line">      --print-token                  prints the token in server mode (default true)</span><br><span class="line">  -t, --token string                 token for authentication</span><br><span class="line">  -f, --token-from string            read the authentication token from a file</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">inlets client --help</span><br><span class="line"></span><br><span class="line">Start the tunnel client.</span><br><span class="line"></span><br><span class="line">Example: inlets client --remote=192.168.0.101:80 --upstream=http://127.0.0.1:3000</span><br><span class="line">Note: You can pass the --token argument followed by a token value to both the server and client to prevent unauthorized connections to the tunnel.</span><br><span class="line"></span><br><span class="line">Usage:</span><br><span class="line">  inlets client [flags]</span><br><span class="line"></span><br><span class="line">Flags:</span><br><span class="line">  -h, --help                help for client</span><br><span class="line">      --print-token         prints the token in server mode (default true)</span><br><span class="line">  -r, --remote string       server address i.e. 127.0.0.1:8000 (default &quot;127.0.0.1:8000&quot;)</span><br><span class="line">  -t, --token string        authentication token</span><br><span class="line">  -f, --token-from string   read the authentication token from a file</span><br><span class="line">  -u, --upstream string     upstream server i.e. http://127.0.0.1:3000</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>生成预共享密钥</li>
+</ul>
+<p>根据上述的帮助信息，需要注意 <strong>-t&#x2F;-f</strong> 这两个参数，服务端和客户端之间需要一种方式来进行身份认证，谁都能接入那就不乱套了！此处使用预共享密钥来进行认证，<code>-t</code>参数对应一个字符串，<code>-f</code>参数对应一个文件，其实就是把密钥存储到一个文件里就行了</p>
+<p>基于项目的说明，直接使用系统的随机数进行生成即可，执行<code>echo $(head -c 16 /dev/urandom | shasum | cut -d&quot; &quot; -f1)</code>，所生产的那串字符就是密钥，你可以直接复制了用，或者存储成一个文件，那样下载到本地就可以给客户端使用了</p>
+<ul>
+<li>启动服务端进行连接测试</li>
+</ul>
+<p>直接在tmux中运行，执行命令<code>inlets server -t ssssss -p 8000</code>，然后快捷键<code>ctrl+b</code>然后按一下<code>d</code>就能将其切换到后台，此处<code>server</code>这个参数决定了以服务端模式运行，客户端就是<code>client</code></p>
+<p>服务端启动了，那么本地客户端也可以启动了，在本地的nanopi上也安装好inlets，测试连接一下服务端，执行：</p>
+<p><code>inlets client -r 165.227.56.252:8000 -t ssss -u http://172.16.1.2:5000</code></p>
+<p>这条命令的意思是inlets以客户端模式运行，远程连接地址是165.227.56.252，端口8000，密钥是ssss，映射本地的<a target="_blank" rel="noopener" href="http://172.16.1.2:5000/">http://172.16.1.2:5000</a> 这个地址,此时在浏览器上输入165.227.56.252:8000就相当于访问本地的<a target="_blank" rel="noopener" href="http://172.16.1.2:5000/">http://172.16.1.2:5000</a> ，此处是我群晖的登陆界面</p>
+<blockquote>
+<p>此处成功进行了连接，也实现了内网穿透，但这样的效果并不是我们所想要的，只能穿透一个算什么牛逼的工具，大家不要着急，请看我后续的操作</p>
+</blockquote>
+<ul>
+<li>实现端口复用和多终端</li>
+</ul>
+<p>单靠inlets本身实现这些功能并不现实，但我们可以拉来一个小伙伴做辅助即可，官方的实例使用的是<a target="_blank" rel="noopener" href="https://caddyserver.com/v1/">caddy</a>，那我们也用这个吧，有了它，证书的事情也可以迎刃而解，至于它该怎么安装，并不是本文的重点，就不写了（请允许我偷懒一下）</p>
+<blockquote>
+<p>这里需要注意的是caddy此时使用的是<strong>v1</strong>版本，配置文件也是基于此版本，v2版本的配置上有比较大的改变，暂时还没把wiki看明白，有兴趣的朋友可以去看看，谷歌搜索caddy第一个出来的就是<strong>v2</strong>版本，大家一定要注意哦！</p>
+</blockquote>
+<img src="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/02.png" class="" title="inlets 02">
+
+<blockquote>
+<p>将inlets配置成服务并且开机启动</p>
+</blockquote>
+<p>其实就是写个开机脚本，直接在<code>/etc/systemd/system/</code>目录下新建<code>inlets.service</code>文件，写入如下内容</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description=Inlets Server Service</span><br><span class="line">After=network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=simple</span><br><span class="line">Restart=always</span><br><span class="line">RestartSec=1</span><br><span class="line">StartLimitInterval=0</span><br><span class="line">EnvironmentFile=/etc/default/inlets  #注意一下这条配置</span><br><span class="line">ExecStart=/usr/local/bin/inlets server --port=8000 --token=&quot;$&#123;AUTHTOKEN&#125;&quot;</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li><p>此处使用了一个变量<code>$&#123;AUTHTOKEN&#125;</code>,这个指代的就是上面生成的那串密钥，本着偷懒的本性，我直接将其加入了系统变量，那么如何加入进去呢？这就要使用这个启动脚本中所设定的变量文件<code>/etc/default/inlets</code>，直接执行<code>echo &quot;export AUTHTOKEN=$(head -c 16 /dev/urandom | shasum | cut -d&quot; &quot; -f1)&quot; &gt; /etc/default/inlets</code>即可，不放心可以查看一下文件中的内容</p>
+</li>
+<li><p>端口号可以看情况自己设定，如果不指定的话默认就是8000，但一定要和后续编写的caddyfile文件相同</p>
+</li>
+<li><p>客户端的启动脚本也可以参照这样编写</p>
+</li>
+</ul>
+</blockquote>
+<p>后续的工作就是设置允许开机启动，并且让inlets在后台运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl enable inlets</span><br><span class="line">systemctl start inlets</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>编写CaddyFile文件</li>
+</ul>
+<blockquote>
+<p>之所以使用caddy完全是因为其两个优点：其一，配置简单；其二，可以自动申请证书，怎么使用我就不再赘述了，想要完全发挥它的功能，可以去查看<a target="_blank" rel="noopener" href="https://caddyserver.com/v1/docs">官方文档</a>，这里的所有配置主要针对inlets进行配置</p>
+</blockquote>
+<p>inlets的服务端和客户端之间是通过<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/WebSocket">websocket</a>进行连接的，所以caddy在这里需要将这个连接转发到inlets上，同时还要监听客户端对目的网址的http或者https访问请求，同样需要将连接转发到inlets上，那么配置文件该怎么写呢？</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">inlets.etspace.xyz &#123;</span><br><span class="line">  tls ddxiong0410@gmail.com</span><br><span class="line">  proxy / 127.0.0.1:8000 &#123;</span><br><span class="line">    transparent</span><br><span class="line">  &#125;</span><br><span class="line">  proxy /tunnel 127.0.0.1:8000 &#123;</span><br><span class="line">    transparent</span><br><span class="line">    websocket</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">qh.etspace.xyz &#123;</span><br><span class="line">  tls ddxiong0410@gmail.com</span><br><span class="line">  proxy / 127.0.0.1:8000 &#123;</span><br><span class="line">    transparent</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">netdata.etspace.xyz &#123;</span><br><span class="line">  tls ddxiong0410@gmail.com</span><br><span class="line">  proxy / 127.0.0.1:8000 &#123;</span><br><span class="line">    transparent</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处可以发现主控的域名下会比其它两个域名多了点内容，主要是需要将websocket的连接请求透明转发到inlets的监听端口上，默认inlets客户端模式会通过websocket协议访问域名的&#x2F;tunnel目录，当caddy接受到这样的连接请求是就会透明转发到inlets的8000端口上，然后服务端和客户端通过预共享密钥进行认证，之后的事情就顺理成章了～</p>
+<p>主控域名只需要一个，它承载了客户端和服务端之间的主要的流量，其他设置的域名都想到于是内网对外映射的入口，按照需要进行添加和设置即可</p>
+<blockquote>
+<p>总体而言，inlets所需要的加密和对外连接主要需要一个主域名加上若干个服务域名构成（当然，如果只需要映射一个服务的话，主域名即可以当认证端又可以当映射入口，上述配置文件中&lt;inlets.etspace.xyz&gt;域名下所设置的两个<strong>proxy</strong>选项就是以此为目的设置的</p>
+</blockquote>
+<p>配置文件写好了，重启一下caddy，<code>systemctl restart caddy</code>，此时caddy会自动为配置文件中的三个域名申请<a target="_blank" rel="noopener" href="https://letsencrypt.org/zh-cn/">Let’s Encrypt</a>证书，有了证书加持，用户访问这个入口的数据也会是加密的，提高一定的安全性</p>
+<ul>
+<li>inlets客户端配置</li>
+</ul>
+<p>在本地的nanopi上编写启动文件，参照一下服务端的配置，个人使用的如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description=Inlets Client Service</span><br><span class="line">After=network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=simple</span><br><span class="line">Restart=always</span><br><span class="line">RestartSec=1</span><br><span class="line">StartLimitInterval=0</span><br><span class="line">EnvironmentFile=/etc/default/inlets</span><br><span class="line">ExecStart=/usr/local/bin/inlets client --remote=&quot;$&#123;REMOTEHOST&#125;&quot; --token=&quot;$&#123;AUTHTOKEN&#125;&quot; --upstream=&quot;$&#123;UPSTREAM&#125;&quot;</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>inlets由服务端模式改成客户端模式，相应的参数也有一些变化，<strong>token</strong>的部分不变，多了<strong>remote</strong>和<strong>upstream</strong>，同样的，我依然会在变量文件中对他们进行设置，这样也是为了方便修改和重启</p>
+</blockquote>
+<p>直接编辑<code>/etc/default/inlets</code>文件，此时的内容如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">export AUTHTOKEN=ssssss</span><br><span class="line">export REMOTEHOST=wss://inlets.etspace.xyz</span><br><span class="line">export UPSTREAM=&quot;qh.etspace.xyz=http://172.16.1.2:5000,netdata.etspace.xyz=http://172.16.1.10:1999&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>由于证书的加入，客户端和服务端之间使用了加密通讯，那么协议类型就变成了wss，而映射的本地服务需要将域名和本地ip以及端口号一一对应，有多少个就加多少个，各个项目直接通过<code>,</code>隔开</p>
+</blockquote>
+<p>编辑完上述的文件后，就可以将inlets设置成开机启动，然后进行一下测试了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">systemctl enable inlets</span><br><span class="line">systemctl start inlets</span><br><span class="line">systemctl status inlets</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>测试一下</li>
+</ul>
+<p>直接打开<a target="_blank" rel="noopener" href="https://qh.etspace.xyz/">https://qh.etspace.xyz</a>看看是什么样的，基本上就可以很顺利的在外面打开家里的群晖登录界面，<a target="_blank" rel="noopener" href="https://netdata.etspace.xyz/">https://netdata.etspace.xyz</a>也一样，那么如果需要建立更多的映射，就按照这样的流程进行配置即可</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><hr>
+<p>inlets可能功能上没有Frp强，但却是一个很好玩的工具，对于一些只需要进行网页端控制的用户而言，不仅做到了对外映射，还能配合caddy进行证书加密，体验还是很不错的，端口复用，也不用担心会和v2ray这样的科学上网发生冲突，或者说，由于inlets的加入也有可能增加一定的混淆能力，毕竟访问这些域名所获取到的可是实打实的一些网站～</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
+<ul>
+<li><strong>2019.08.27</strong> 建立初稿</li>
+<li><strong>2019.11.30</strong> 稍微更新点东西</li>
+<li><strong>2020.02.22</strong> 从冬眠中复苏，决定稍微写点什么</li>
+<li><strong>2020.02.29</strong> 还是要更新的</li>
+<li><strong>2020.03.06</strong> 加上图片应该就完成了</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Tools/" rel="tag"># Tools</a>
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/" rel="prev" title="Linux路由补完计划05 dnsmasq进阶配置">
+      <i class="fa fa-chevron-left"></i> Linux路由补完计划05 dnsmasq进阶配置
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/29/linux-router-06-block-ads-with-pi-hole/" rel="next" title="Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇">
+      Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E5%95%A5%E6%8E%A8%E8%8D%90%E5%AE%83"><span class="nav-number">2.</span> <span class="nav-text">为啥推荐它</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%83%E8%83%BD%E5%81%9A%E5%95%A5"><span class="nav-number">3.</span> <span class="nav-text">它能做啥</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">运行原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E7%90%86%E5%9B%BE"><span class="nav-number">4.1.</span> <span class="nav-text">原理图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E8%AF%B4%E6%98%8E"><span class="nav-number">4.2.</span> <span class="nav-text">流程说明</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B"><span class="nav-number">5.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E4%BE%8B%E8%AF%B4%E6%98%8E"><span class="nav-number">5.1.</span> <span class="nav-text">实例说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%88%E5%86%B3%E6%9D%A1%E4%BB%B6"><span class="nav-number">5.2.</span> <span class="nav-text">先决条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83"><span class="nav-number">5.3.</span> <span class="nav-text">实验环境</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEDNS%E8%A7%A3%E6%9E%90"><span class="nav-number">5.3.1.</span> <span class="nav-text">配置DNS解析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E4%B8%8Ainlets%E7%9A%84%E5%AE%89%E8%A3%85%E5%92%8C%E9%85%8D%E7%BD%AE"><span class="nav-number">5.3.2.</span> <span class="nav-text">服务端上inlets的安装和配置</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9C%A8%E6%89%A7%E8%A1%8C%E5%90%8E%E7%BB%AD%E7%9A%84%E6%93%8D%E4%BD%9C%E4%B9%8B%E5%89%8D%EF%BC%8C%E9%A6%96%E5%85%88%E5%BB%BA%E8%AE%AE%E4%BA%86%E8%A7%A3%E4%B8%80%E4%B8%8Binlets%E7%9A%84%E5%91%BD%E4%BB%A4%E5%92%8C%E5%8F%82%E6%95%B0"><span class="nav-number">5.3.2.1.</span> <span class="nav-text">在执行后续的操作之前，首先建议了解一下inlets的命令和参数</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2"><span class="nav-number">7.</span> <span class="nav-text">历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

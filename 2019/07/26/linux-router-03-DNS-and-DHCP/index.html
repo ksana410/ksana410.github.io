@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 上一篇文章中我将Linux配置成了一台路由器，并进行了演示，但当时由于没有配置DHCP和DNS，我只能手动的对客户机的网卡进行配置，手动的添加了IP，子网掩码，网关地址以及DNS，这期我将记录下我是如何搭建DNS和DHCP的，让所有接入的网络设备自由的获取IP，当然在此之前，一定要先把Linux的路由功能给搭建起来，否则做这些好像就没有多大意义了。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划03 配置DNS和DHCP">
+<meta property="og:url" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 上一篇文章中我将Linux配置成了一台路由器，并进行了演示，但当时由于没有配置DHCP和DNS，我只能手动的对客户机的网卡进行配置，手动的添加了IP，子网掩码，网关地址以及DNS，这期我将记录下我是如何搭建DNS和DHCP的，让所有接入的网络设备自由的获取IP，当然在此之前，一定要先把Linux的路由功能给搭建起来，否则做这些好像就没有多大意义了。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/01.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/02.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/05.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/06.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/07.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/08.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/09.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/10.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/11.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/12.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/13.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/14.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/15.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/16.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/17.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/19.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/20.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/21.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/22.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/23.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/24.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/25.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/26.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/27.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/28.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/29.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/30.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/33.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/35.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/36.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/37.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/38.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/39.png">
+<meta property="article:published_time" content="2019-07-26T23:03:13.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.273Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/01.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划03 配置DNS和DHCP | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/07/26/linux-router-03-DNS-and-DHCP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划03 配置DNS和DHCP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-07-26 23:03:13" itemprop="dateCreated datePublished" datetime="2019-07-26T23:03:13+00:00">2019-07-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>上一篇文章中我将Linux配置成了一台路由器，并进行了演示，但当时由于没有配置DHCP和DNS，我只能手动的对客户机的网卡进行配置，手动的添加了IP，子网掩码，网关地址以及DNS，这期我将记录下我是如何搭建DNS和DHCP的，让所有接入的网络设备自由的获取IP，当然在此之前，一定要先把Linux的路由功能给搭建起来，否则做这些好像就没有多大意义了。</p>
+<span id="more"></span>
+
+<h2 id="搭建方案"><a href="#搭建方案" class="headerlink" title="搭建方案"></a>搭建方案</h2><hr>
+<blockquote>
+<p>Linux上的工具很多，不同的人有不同的搭建方案，这次我将使用两个方案来实现DNS和DHCP的功能，他们分别是dnsmasq和AdGuard Home+dhcpd，两个方案搭建起来都比较简单，稍微修改一下配置文件即可</p>
+</blockquote>
+<ul>
+<li><p>方案一：<br><a target="_blank" rel="noopener" href="https://wiki.archlinux.org/index.php/Dnsmasq_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87)">dnsmasq</a>是一款轻量化的DNS服务器，当然它的功能还不止这些，还能提供DHCP和PXE网络启动，对于家里这种比较小型的局域网，用它简直太合适了</p>
+</li>
+<li><p>方案二：<br><a target="_blank" rel="noopener" href="https://adguard.com/zh_cn/adguard-home/overview.html">AdGuard Home</a>是AdGuard公司开源的一款使用Go语言开发的DNS服务器软件，支持家长控制和广告过滤，关键还支持<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/DNS_over_TLS">DNS over TLS</a>，对于部署环境还不怎么挑剔；配置简单，并且它自身还能提DHCP服务，那就直接用它吧！</p>
+</li>
+</ul>
+<h2 id="正式搭建"><a href="#正式搭建" class="headerlink" title="正式搭建"></a>正式搭建</h2><hr>
+<blockquote>
+<p>由于我是懒人，懒得多搭建几个测试环境，那就利用虚拟机的快照功能建立一个恢复点吧，不仅可以防止配置出错，还能多折腾几种方案，哪种方案靠谱就删掉其它的还原点就可以了</p>
+</blockquote>
+<h3 id="建立快照"><a href="#建立快照" class="headerlink" title="建立快照"></a>建立快照</h3><hr>
+<p>直接在 控制台——虚拟机——快照——生成快照</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/01.png" class="" title="快照01">
+
+<p>然后给这个快照起个名字，写点说明，等它建立好就行了</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/02.png" class="" title="快照02">
+
+<p>好了，前期的准备就结束了，进行下一步</p>
+<hr>
+<h3 id="利用dnsmasq搭建"><a href="#利用dnsmasq搭建" class="headerlink" title="利用dnsmasq搭建"></a>利用dnsmasq搭建</h3><hr>
+<h4 id="安装dnsmasq"><a href="#安装dnsmasq" class="headerlink" title="安装dnsmasq"></a>安装dnsmasq</h4><p><strong>dnsmasq</strong>已经内置在debian的软件源之中，安装起来非常简单，直接执行<code>apt-get install dnsmasq -y</code>即可，之后系统会直接进行安装，并将启动文件，配置文件等项目创建好了，开机自启也添加到了启动项</p>
+<h4 id="dnsmasq的配置文件"><a href="#dnsmasq的配置文件" class="headerlink" title="dnsmasq的配置文件"></a>dnsmasq的配置文件</h4><p>接下来要做的主要就是修改<strong>dnsmasq</strong>的配置文件，配置文件主要是<code>/etc/dnsmasq.conf</code>和<code>/etc/dnsmasq.d</code>目录，前面一个是主配置文件，后面的那个目录属于扩展配置，当然为了管理更加方便，此处我会使用扩展配置的方式进行设置，但是默认情况下<strong>dnsmasq</strong>并不会调用<code>/etc/dnsmasq.d</code>中的配置文件，为了解决这个问题，需要在主配置文件中修改一个参数，<code>vi /etc/dnsmasq.conf</code>打开配置文件，移动到文件末尾，删除<code>conf-dir=/etc/dnsmasq.d/,*.conf</code>前的 <strong>#</strong> 符号，之后保存退出，这样<strong>dnsmasq</strong>就会自动进入 <strong>&#x2F;etc&#x2F;dnsmasq.d</strong> 目录中查找配置文件</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/05.png" class="" title="dnsmasq 01">
+
+<p>之后就可以进入 <strong>&#x2F;etc&#x2F;dnsmasq.d</strong> 目录中进行相关的配置了，在我的服务器上，我对每个功能设置了一个配置文件，如图：</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/06.png" class="" title="dnsmasq 02">
+
+<blockquote>
+<p>这里先不讨论这些配置文件分别对应什么功能，这样做只是为了更方便配置，哪个功能出现了问题就配置对应的文件，考虑到今后功能会越来越多，配置会越来越复杂，这种方式相比于一个文件解决一堆问题会有条理很多（没办法，男人对于自己电脑有种莫名的强迫症）</p>
+</blockquote>
+<p>现在需要让<strong>dnsmasq</strong>实现DNS和DHCP的功能，那就创建两个配置文件吧！此处如图：</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/07.png" class="" title="dnsmasq 03">
+
+<h4 id="配置DNS功能"><a href="#配置DNS功能" class="headerlink" title="配置DNS功能"></a>配置DNS功能</h4><p>实现DNS功能其实非常简单，打开配置文件，<code>vi /etc/dnsmasq.d/dns.conf</code>，输入下述内容：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">listen-address=127.0.0.1,192.168.100.1 #监听本地和192.168.100.1两个地址，主要提供本机和LAN口的DNS服务</span><br><span class="line">no-resolv #不使用/etc/resolv.conf中的DNS服务器，后面server选项已经指定了上级服务器，故不需要用到系统网卡配置的DNS</span><br><span class="line">cache-size=1000 #保留1000个缓存地址，提高解析的速度，特别是有污染的情况下</span><br><span class="line">server=114.114.114.114 #上级服务器，此处选择了国内很常用的114 DNS</span><br><span class="line">server=8.8.4.4 #同样的我也使用了谷歌的服务作为后备，这个根据实际的情况进行调整，当然，如果后期要做DNS防污染，此处配置同样重要</span><br><span class="line">clear-on-reload #重启后清除缓存</span><br></pre></td></tr></table></figure>
+
+<p>轻量级DNS服务器的话，上述配置就足够了，接下来就是DHCP功能。</p>
+<h4 id="配置DHCP功能"><a href="#配置DHCP功能" class="headerlink" title="配置DHCP功能"></a>配置DHCP功能</h4><p>在修改配置前，首先记录一下LAN口的网卡MAC地址，这个地址在后面的配置中需要用到，执行<code>ip a</code>即可查询到，此处查询到的MAC地址是<strong>00:0c:29:c4:0a:41</strong></p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/08.png" class="" title="dnsmasq 04">
+
+<p>接下来执行<code>vi /etc/dnsmasq.d/dhcp.conf</code>，输入如下内容：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">interface=ens224 #提供DHCP服务的网卡</span><br><span class="line">bind-interfaces #绑定网卡，防止对其它网卡的干扰</span><br><span class="line">dhcp-range=192.168.100.100,192.168.100.200,12h #地址分配范围及租用时间，我设置的是100～200这101个地址，实际上根本就用不了这么多，有效期12个小时，格式一定要注意，中间要用英文的逗号</span><br><span class="line">dhcp-host=00:0c:29:c4:0a:41,192.168.100.1 #DHCP网卡的信息，MAC地址及IP，此处为必要项</span><br><span class="line">dhcp-leasefile=/etc/dnsmasq.leases #保存DHCP的分配的主机和地址</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>简单的DHCP功能只需要这些配置就足够了，感觉很高大上，其实需要修改的也就这么点东西，现在就不引入一些高阶的功能了，够用就行</p>
+</blockquote>
+<h4 id="验证一下"><a href="#验证一下" class="headerlink" title="验证一下"></a>验证一下</h4><ul>
+<li>使用<code>dnsmasq --test</code>命令验证一下配置文件，如果没有问题的话会显示<code>dnsmasq: syntax check OK.</code></li>
+</ul>
+<hr>
+<ul>
+<li>重启一下<strong>dnsmasq</strong>来应用配置，<code>systemctl resatet dnsmasq</code>，验证一下状态，<code>systemctl status dnsmasq</code>，此处可以大致看到dnsmasq运行的状态，没问题的话按<strong>q</strong>退出</li>
+</ul>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/09.png" class="" title="dnsmasq 05">
+
+<hr>
+<ul>
+<li>使用验证依然使用Manjaro啦，打开虚拟机，修改一下网卡配置，从原来的手动指定修改为自动获取，DNS也改成自动，重启一下网卡之后就能自动获取到ip地址了</li>
+</ul>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/10.png" class="" title="dnsmasq 06">
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/11.png" class="" title="dnsmasq 07">
+
+<p>那如何验证不是我暗箱操作呢？直接在服务器上查看DHCP分配情况就可以了，查看对应的记录文件<code>cat /etc/dnsmasq.leases</code></p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/12.png" class="" title="dnsmasq 08">
+
+<p>之后那就放个<a target="_blank" rel="noopener" href="https://www.bilibili.com/bangumi/media/md1733">《罗小黑战记》</a>作为结尾吧，（等下，还有AdGuard Home呢，大家不要失去耐心啊～）</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/13.png" class="" title="dnsmasq 09">
+
+<hr>
+<h3 id="利用AdGuard-Home搭建"><a href="#利用AdGuard-Home搭建" class="headerlink" title="利用AdGuard Home搭建"></a>利用AdGuard Home搭建</h3><hr>
+<h4 id="视频说明"><a href="#视频说明" class="headerlink" title="视频说明"></a>视频说明</h4><iframe width="560" height="315" src="https://www.youtube.com/embed/Aez-j5dENaU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h5 id="安装AdGuard-Home"><a href="#安装AdGuard-Home" class="headerlink" title="安装AdGuard Home"></a>安装AdGuard Home</h5><p>进入AdGuard Home的<a target="_blank" rel="noopener" href="https://github.com/AdguardTeam/AdGuardHome/releases">github</a>，根据自己的平台下载最新版，此处下载<a target="_blank" rel="noopener" href="https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.97.1/AdGuardHome_linux_386.tar.gz">AdGuardHome_linux_386.tar.gz</a>，执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd /opt</span><br><span class="line">wget https://github.com/AdguardTeam/AdGuardHome/releases/download/v0.97.1/AdGuardHome_linux_386.tar.gz</span><br><span class="line">tar xzf AdGuardHome_linux_386.tar.gz</span><br><span class="line">cd AdGuardHome</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>解压出来只有一个二进制文件<strong>AdGuardHome</strong>，这个就是程序的主体，不要觉得奇怪，真的只有这么一个文件</p>
+</blockquote>
+<p>好了，废话不多说，直接进行安装吧！<code>./AdGuardHome -s install</code>，安装很迅速，以瞬间就完成了，此时系统会提示监听的端口，默认它会监听所有的IP地址，监听端口默认是3000</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/14.png" class="" title="adguard 01">
+
+<h4 id="对AdGuard-Home进行配置"><a href="#对AdGuard-Home进行配置" class="headerlink" title="对AdGuard Home进行配置"></a>对AdGuard Home进行配置</h4><p>直接在LAN口的Manjaro系统上打开浏览器进行配置，打开<a target="_blank" rel="noopener" href="http://192.168.100.1:3000/">http://192.168.100.1:3000</a>，它会根据浏览器语言自动选择显示语言，由于我使用的FireFox是英文版，故显示的是英文，如果想要显示中文，直接在右下角选择简体中文即可</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/15.png" class="" title="adguard 02">
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/16.png" class="" title="adguard 03">
+
+<p>直接点击开始配置之后会询问你使用哪个网卡进行监听以及使用的端口，这里我保持了默认的80端口作为网页管理的端口(不用输入后面端口号也是种懒症)，同样的53端口也保持默认，这个也是DNS查询的默认端口</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/17.png" class="" title="adguard 04">
+
+<p>下一步之后就会要求你设置用户名和密码，这是登录网页管理需要用到的，根据自己的喜好进行设置吧！</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/19.png" class="" title="adguard 05">
+
+<p>最终的页面会给出不同客户端需要怎样配置可以使用AdGuard Home提供的DNS服务(当然，后面配置了DHCP就不用管这些了)</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/20.png" class="" title="adguard 06">
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/21.png" class="" title="adguard 07">
+
+<h4 id="AdGuard-Home功能说明"><a href="#AdGuard-Home功能说明" class="headerlink" title="AdGuard Home功能说明"></a>AdGuard Home功能说明</h4><blockquote>
+<p>AdGuard Home主要提供DNS解析，广告过滤，家长控制，DHCP等功能，由于本次还不涉及到广告过滤和DNS防污染等功能，故并不会深入说明，只是会稍微提一下</p>
+</blockquote>
+<p>主界面，这上面会展示系统运行情况，客户端使用和DNS查询等情况，还是比较直观的</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/22.png" class="" title="adguard 08">
+
+<p>在整个界面的上方提供多种配置选项，本次主要使用<strong>DNS settings</strong>和<strong>DHCP settings</strong></p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/23.png" class="" title="adguard 09">
+
+<p><strong>常规设置</strong>提供大的解析功能，为了自由当然不要动啦！</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/24.png" class="" title="adguard 10">
+
+<p><strong>DNS settings</strong>中提供上级DNS服务器的设置，由于AdGuard Home支持DNS_over_HTTPS等DNS解析加密技术，这里官方提供了<a target="_blank" rel="noopener" href="https://www.cloudflare.com/">cloudflare</a>的加密解析地址（但是，GFW对此域名依然有污染，建议还是自建或者用别的非主流地址代替）</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/25.png" class="" title="adguard 11">
+
+<p><strong>Encryption settings</strong>提供DNS_over_TLS的功能配置，可以将AdGuard Home配置成一台提供DNS加密解析的服务器，这个功能在内网中没有意义，比较适合放在国外的VPS主机上，为国内的用户提供干净的DNS解析支持</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/26.png" class="" title="adguard 12">
+
+<p><strong>Client settings</strong>可以配置对每个用户提供不同服务，比如对某个主机设置家长控制，暂时用不到</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/27.png" class="" title="adguard 13">
+
+<p><strong>DHCP settings</strong>配置DHCP功能，虽然还处在测试阶段，但经过测试，满足家中小局域网没有任何问题</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/28.png" class="" title="adguard 14">
+
+<p><strong>过滤器</strong>可以配置广告过滤规则，可以直接添加<a target="_blank" rel="noopener" href="https://adblockplus.org/">Adblock Plus</a>等浏览器过滤插件的规则，当然也可以进行手动配置，按需调整，此处不展开，后期会说明</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/29.png" class="" title="adguard 15">
+
+<p><strong>查询日志</strong>将会显示DNS解析情况，会比较详细，由于还没使用，此处还是空的</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/30.png" class="" title="adguard 16">
+
+<h4 id="配置AdGuard-Home-DNS功能"><a href="#配置AdGuard-Home-DNS功能" class="headerlink" title="配置AdGuard Home DNS功能"></a>配置AdGuard Home DNS功能</h4><p>AdGuard Home本身就已经开启了DNS功能，只不过默认使用的上级服务器是DNS_over_HTTPS的一个地址，所以要先将这个地址解析成正确的IP之后才能发起查询，在自身没有解析能力的情况下该怎么办呢？它引入了<strong>Bootstrap DNS 服务器</strong>，系统会先利用这个DNS对域名进行解析，然后再进行查询，这个设置项只针对使用了域名作为上级服务器的情况，默认使用的是1.1.1.1，GFW一直都DNS污染很上心，这次直接把这个地址屏蔽了，那被逼无奈只能换咯，暂时还不展示DNS防污染，那就先用114的吧，同样的在上级服务器中也加上114的地址，勾选<strong>通过同时查询所有上流服务器以使用并行查询查询加速解析</strong>，这个选项在多个上级服务器的情况下可以提升性能</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/33.png" class="" title="adguard 17">
+
+<h4 id="开启AdGuard-Home-DHCP功能"><a href="#开启AdGuard-Home-DHCP功能" class="headerlink" title="开启AdGuard Home DHCP功能"></a>开启AdGuard Home DHCP功能</h4><p>AdGuard Home上的DHCP服务器还处于测试阶段，在配置过程中还是会出现点小状况，首先选择DHCP接口，因为要在LAN口上提供DHCP服务，那就选择<strong>ens224</strong>吧，网关地址就填写<strong>ens224</strong>的地址，后面的地址范围就输入你希望客户端能够获取的IP范围，我写了10～200这个范围。然后子网掩码就用255.255.255.0，租约时间不用管，当然你想时间长点也可以手动设置一下，之后保存一下配置，点击检查DHCP服务器，可能会遇到下面的错误</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/35.png" class="" title="adguard 18">
+
+<blockquote>
+<p>这个错误不用管，直接点击启用DHCP服务器即可</p>
+</blockquote>
+<p>如果启动成功了就会在右下角显示通知</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/36.png" class="" title="adguard 19">
+
+<h4 id="进行测试"><a href="#进行测试" class="headerlink" title="进行测试"></a>进行测试</h4><p>修改Manjaro的网卡配置，使用DHCP，成功获取到了IP地址</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/37.png" class="" title="adguard 20">
+
+<p>同样的也可以在AdGuard Home上看到客户端信息</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/38.png" class="" title="adguard 21">
+
+<p>稍微打开一些网页浏览一下就可以在AdGuard Home的仪表盘上看到一些统计信息</p>
+<img src="/2019/07/26/linux-router-03-DNS-and-DHCP/39.png" class="" title="adguard 22">
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><hr>
+<p>解决了DNS和DHCP问题，Linux软路由已经可以正常使用了，当然，距离挂梯子还有一段路要走，希望大家在看了我的笔记之后能有所启发，如果能留言交流将更加好，好了，我们下期再见</p>
+<h2 id="历史记录"><a href="#历史记录" class="headerlink" title="历史记录"></a>历史记录</h2><hr>
+<ul>
+<li><strong>2019.07.26</strong> 撰写初稿</li>
+<li><strong>2019.07.29</strong> 完成dnsmasq配置部分</li>
+<li><strong>2019.08.01</strong> 完成AdGuard Home配置</li>
+<li><strong>2019.08.19</strong> 增加AdGuard Home视频说明部分</li>
+<li><strong>2019.09.10</strong> 格式调整</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/07/20/linux-router-02-install-debian-and-configure-forward/" rel="prev" title="Linux路由补完计划02 Debian安装及配置基础路由功能">
+      <i class="fa fa-chevron-left"></i> Linux路由补完计划02 Debian安装及配置基础路由功能
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/11/linux-router-04-AdGuard-Home-settings/" rel="next" title="Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染">
+      Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">搭建方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%A3%E5%BC%8F%E6%90%AD%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">正式搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B%E5%BF%AB%E7%85%A7"><span class="nav-number">3.1.</span> <span class="nav-text">建立快照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8dnsmasq%E6%90%AD%E5%BB%BA"><span class="nav-number">3.2.</span> <span class="nav-text">利用dnsmasq搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85dnsmasq"><span class="nav-number">3.2.1.</span> <span class="nav-text">安装dnsmasq</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dnsmasq%E7%9A%84%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">3.2.2.</span> <span class="nav-text">dnsmasq的配置文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEDNS%E5%8A%9F%E8%83%BD"><span class="nav-number">3.2.3.</span> <span class="nav-text">配置DNS功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEDHCP%E5%8A%9F%E8%83%BD"><span class="nav-number">3.2.4.</span> <span class="nav-text">配置DHCP功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E4%B8%80%E4%B8%8B"><span class="nav-number">3.2.5.</span> <span class="nav-text">验证一下</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8AdGuard-Home%E6%90%AD%E5%BB%BA"><span class="nav-number">3.3.</span> <span class="nav-text">利用AdGuard Home搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%86%E9%A2%91%E8%AF%B4%E6%98%8E"><span class="nav-number">3.3.1.</span> <span class="nav-text">视频说明</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%89%E8%A3%85AdGuard-Home"><span class="nav-number">3.3.1.1.</span> <span class="nav-text">安装AdGuard Home</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9AdGuard-Home%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE"><span class="nav-number">3.3.2.</span> <span class="nav-text">对AdGuard Home进行配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AdGuard-Home%E5%8A%9F%E8%83%BD%E8%AF%B4%E6%98%8E"><span class="nav-number">3.3.3.</span> <span class="nav-text">AdGuard Home功能说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEAdGuard-Home-DNS%E5%8A%9F%E8%83%BD"><span class="nav-number">3.3.4.</span> <span class="nav-text">配置AdGuard Home DNS功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BC%80%E5%90%AFAdGuard-Home-DHCP%E5%8A%9F%E8%83%BD"><span class="nav-number">3.3.5.</span> <span class="nav-text">开启AdGuard Home DHCP功能</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E8%A1%8C%E6%B5%8B%E8%AF%95"><span class="nav-number">3.3.6.</span> <span class="nav-text">进行测试</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2%E8%AE%B0%E5%BD%95"><span class="nav-number">5.</span> <span class="nav-text">历史记录</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

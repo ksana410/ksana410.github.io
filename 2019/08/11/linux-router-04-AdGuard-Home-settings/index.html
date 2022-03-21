@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 上一篇教程中我分别使用dnsmasq和AdGuard Home实现了DNS和DHCP功能，如果只是实现这些功能，那它们就太Low了，这期内容将以AdGuard Home为例，利用其老本行，实现广告过滤及DNS防污染功能，特别是DNS防污染功能，对于后期的挂梯子至关重要，废话不多说，直接开始配置吧！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染">
+<meta property="og:url" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 上一篇教程中我分别使用dnsmasq和AdGuard Home实现了DNS和DHCP功能，如果只是实现这些功能，那它们就太Low了，这期内容将以AdGuard Home为例，利用其老本行，实现广告过滤及DNS防污染功能，特别是DNS防污染功能，对于后期的挂梯子至关重要，废话不多说，直接开始配置吧！">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/14.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/15.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/16.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/17.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/18.png">
+<meta property="article:published_time" content="2019-08-11T14:46:53.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.329Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/14.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染 | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/08/11/linux-router-04-AdGuard-Home-settings/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-11 14:46:53" itemprop="dateCreated datePublished" datetime="2019-08-11T14:46:53+00:00">2019-08-11</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>上一篇教程中我分别使用dnsmasq和AdGuard Home实现了DNS和DHCP功能，如果只是实现这些功能，那它们就太Low了，这期内容将以AdGuard Home为例，利用其老本行，实现广告过滤及DNS防污染功能，特别是DNS防污染功能，对于后期的挂梯子至关重要，废话不多说，直接开始配置吧！</p>
+<span id="more"></span>
+
+<h2 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h2><hr>
+<p>对于Linux路由来说，找到一款合适的广告过滤工具并不容易，它本身不同于openwrt，拥有大量的插件提供无数功能，而对于Linux系统，虽然属于通用操作系统，openwrt也是由它衍生出来的，但通用和专用系统还是有很大差异的，就如同cpu一样，它再牛逼，干gpu的事情也不行，这样的比喻也许并不恰当，但也不是不能用是吧！</p>
+<p>虽然openwrt上的一些工具已经有移植的版本，比如<strong>koolproxy</strong>，但这个并不是我今天所要讨论的重点，我选择了相对比较原始的过滤广告的方法，即DNS过滤，限制那些广告域名的解析，变相的屏蔽广告，效果可能没有那么好，但过滤个八九成广告还是问题不大的，关键一点是使用现有的工具就能做到。</p>
+<p>当然，屏蔽广告很重要，防DNS污染也很重要哦，不要忘记初衷，搭建二级路由主要就是为了挂梯子了，获取到正确的IP至关重要，感谢<strong>GFW</strong>让我们感受到了DNS污染的牛逼，由于DNS协议太老旧了，污染它是成本的方法，甚至于我使用iptables配置一下都能劫持它，看吧，国家也是要考虑运营成本的啊，当然是选择便宜的大规模部署啦！所以使用常用的DNS服务地址都会被污染，比如常用的<strong>114.114.114.114</strong>，<strong>8.8.8.8</strong>等等，基本上都难逃污染，通过它们解析到的IP基本上都是不能用来翻墙的，都是错误的；连门牌号都搞错了，那如何才能找到你想要的东西呢，所以这是在建立梯子前必须解决的问题</p>
+<h2 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h2><hr>
+<blockquote>
+<p>AdGuard Home本身就是一款广告过滤工具，那广告过滤什么的就没啥压力了，同样的AdGuard Home还支持DNS_over_HTTPS和DNS_over_TLS等加密解析功能，利用这一点获取到正确的IP，就决定这样干，具体会不会有啥坑呢？先操作一下试试吧！</p>
+</blockquote>
+<p>AdGuard Home整个系统已经将你需要的功能都构建好了，该怎么用完全取决于你使用哪种过滤策略，使用哪种上级DNS地址查询正确的IP地址，下面是我所使用的规则及服务器：</p>
+<p>推荐的广告过滤规则</p>
+<table>
+<thead>
+<tr>
+<th align="center">规则名</th>
+<th align="center">规则地址</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">EasyList China</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://easylist-downloads.adblockplus.org/easylistchina.txt">https://easylist-downloads.adblockplus.org/easylistchina.txt</a></td>
+</tr>
+<tr>
+<td align="center">CJX’s EasyList Lite</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjxlist.txt">https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjxlist.txt</a></td>
+</tr>
+<tr>
+<td align="center">EasyList</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://easylist.to/easylist/easylist.txt">https://easylist.to/easylist/easylist.txt</a></td>
+</tr>
+</tbody></table>
+<p>上游DNS服务器选择，AdGuard Home支持的服务器类型</p>
+<table>
+<thead>
+<tr>
+<th align="center">DNS类型</th>
+<th align="left">可靠性分析</th>
+<th align="center">推荐地址</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">UDP_DNS</td>
+<td align="left">常规的DNS查询方式，使用UDP明文传输，安全性差，易污染</td>
+<td align="center">1.1.1.1，114.114.114.114，8.8.8.8，9.9.9.9</td>
+</tr>
+<tr>
+<td align="center"><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/DNS_over_TLS">DNS_over_TLS</a></td>
+<td align="left">默认使用853端口,使用TCP进行传输，相当于给DNS解析进行了加密，由于存在特定端口，容易被封锁（当然也可以使用443端口）</td>
+<td align="center"><a href="tls://dns.adguard.com">tls://dns.adguard.com</a>,<a href="tls://dns.google">tls://dns.google</a></td>
+</tr>
+<tr>
+<td align="center"><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/DNS_over_HTTPS">DNS_over_HTTPS</a></td>
+<td align="left">为了反审查，DNS查询也需要加入混淆，将DNS查询伪装成HTTPS协议来欺骗GFW,这样就很难分辨哪些流量是正常的网络访问，哪些是DNS解析了，但是这样势必会造成时延增高</td>
+<td align="center"><a target="_blank" rel="noopener" href="https://cloudflare-dns.com/dns-query">https://cloudflare-dns.com/dns-query</a>,<a target="_blank" rel="noopener" href="https://dns.google.com/resolve">https://dns.google.com/resolve</a>,<a target="_blank" rel="noopener" href="https://sdns.233py.com/dns-query">https://sdns.233py.com/dns-query</a></td>
+</tr>
+<tr>
+<td align="center">TCP_DNS</td>
+<td align="left">使用TCP来代替UDP，同时使用非标准端口会较容易打开国外打不开的网站</td>
+<td align="center"><a href="tcp://208.67.222.222:5353">tcp://208.67.222.222:5353</a>,<a href="tcp://208.67.220.220:5353">tcp://208.67.220.220:5353</a></td>
+</tr>
+<tr>
+<td align="center"><a target="_blank" rel="noopener" href="https://dnscrypt.info/stamps/">DNSCrypt</a></td>
+<td align="left">一款小众的DNS查询系统，不同于现有DNS查询方式，但是协议特征明显，容易被识别，但现在GFW暂时没有对其进行大规模限制，在现有使用规模下它还是安全的</td>
+<td align="center">建议自建<a target="_blank" rel="noopener" href="https://github.com/jedisct1/dnscrypt-proxy">客户端</a></td>
+</tr>
+</tbody></table>
+<p>推荐优先级 DNS_over_HTTPS &gt; DNS_over_TLS &gt; DNSCrypt &gt; TCP_DNS &gt; UDP_DNS</p>
+<p>DNS_over_HTTPS最为首选，如果使用国外的话延迟就太高了，国内的话使用<a target="_blank" rel="noopener" href="https://sdns.233py.com/">https://sdns.233py.com</a>提供的服务效果会好一点，如果自身技术水平较强的话，在周边国家采购vps自建也不错，比如在套路云上自建延迟会比较有优势</p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><hr>
+<blockquote>
+<p>AdGuard Home基本上所有配置都可以在WEB界面进行配置，上期已经将基本的解析和DHCP配置好了，现在只需要调整可靠的上级DNS服务器和广告过滤规则即可</p>
+</blockquote>
+<h3 id="防DNS投毒"><a href="#防DNS投毒" class="headerlink" title="防DNS投毒"></a>防DNS投毒</h3><p>为了防污染，优先选择DNS_over_HTTPS，此处我使用了国内的<a target="_blank" rel="noopener" href="https://sdns.233py.com/dns-query">https://sdns.233py.com/dns-query</a>，相比于国外的服务商来说，延迟上的优势简直可以秒杀一切了，当然如果你在本地自建也是一种比较高速的方法</p>
+<img src="/2019/08/11/linux-router-04-AdGuard-Home-settings/14.png" class="" title="AdGuardHome 01">
+
+<p>如果只有一个上游服务器的话，就不要勾选那个同时查询选项了，如果使用了国外的服务器，那建议多添加几个，并适当添加一个国内常用的DNS地址，并勾选同时查询选择，这样可以有效提高解析速度</p>
+<h3 id="广告过滤规则"><a href="#广告过滤规则" class="headerlink" title="广告过滤规则"></a>广告过滤规则</h3><p>现有官方提供的规则并不一定适合国内使用，所以我取消了默认的勾选，并录入了三个上面推荐的规则地址</p>
+<img src="/2019/08/11/linux-router-04-AdGuard-Home-settings/15.png" class="" title="AdGuardHome 02">
+
+<p>添加规则很简单，直接点击左下角的添加规则按钮即可，此时会跳出如下对话框，给规则起个名，录入规则地址即可，如果你已经配置好上级DNS服务器，那么此时点击添加过滤器的话会有一段时间延迟，不要以为是系统出问题了，这是系统在解析域名地址并下载相应的规则，卡滞时间由规则大小和域名所指向服务器速度决定，如果没配置上级DNS服务器的话就会添加失败</p>
+<img src="/2019/08/11/linux-router-04-AdGuard-Home-settings/16.png" class="" title="AdGuardHome 03">
+
+<p>当然除了这些别人整理的规则集之外，自己也可以手动添加一些规则</p>
+<img src="/2019/08/11/linux-router-04-AdGuard-Home-settings/17.png" class="" title="AdGuardHome 04">
+
+<p>官方提供的范例如下</p>
+<img src="/2019/08/11/linux-router-04-AdGuard-Home-settings/18.png" class="" title="AdGuardHome 05">
+
+<p>高阶的正则表达式还玩不转，一些普通的规则语法还是可以尝试的</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x27;!&#x27;和&#x27;#&#x27;作为开头的话这一行就作为注释说明的部分，系统不会读取里面的内容，只会作为文本呈现出来</span><br><span class="line"></span><br><span class="line">||baidu.com^ 如果我添加这条规则的话，所有百度旗下的以baidu.com作为主域名的网站都会被屏蔽掉，记住不要忘记最后的那个&#x27;^&#x27;</span><br><span class="line"></span><br><span class="line">如果在||baidu.com^的前面加上&#x27;@@&#x27;，即@@||baidu.com^，这样的话所有百度旗下的网站都会被放行，不管他是不是广告</span><br><span class="line"></span><br><span class="line">如果需要屏蔽指定的网站的话，比如需要屏蔽百度首页，www.baidu.com，那么输入127.0.0.1 www.baidu.com即可，这样的话www.baidu.com这个域名就会解析为127.0.0.1，由于这是环回地址，自然就无法正常访问了</span><br></pre></td></tr></table></figure>
+
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
+<ul>
+<li><strong>2019.08.11</strong> 成稿</li>
+<li><strong>2019.08.12</strong> 随手写一点</li>
+<li><strong>2019.08.13</strong> 添加部分链接</li>
+<li><strong>2019.08.19</strong> 完善推荐列表</li>
+<li><strong>2019.08.21</strong> 完成规则添加说明</li>
+<li><strong>2019.09.10</strong> 格式调整</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/07/26/linux-router-03-DNS-and-DHCP/" rel="prev" title="Linux路由补完计划03 配置DNS和DHCP">
+      <i class="fa fa-chevron-left"></i> Linux路由补完计划03 配置DNS和DHCP
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/" rel="next" title="Linux路由补完计划05 dnsmasq进阶配置">
+      Linux路由补完计划05 dnsmasq进阶配置 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E6%83%85%E6%8F%90%E8%A6%81"><span class="nav-number">2.</span> <span class="nav-text">前情提要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B4%E6%98%8E"><span class="nav-number">3.</span> <span class="nav-text">说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE"><span class="nav-number">4.</span> <span class="nav-text">配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%98%B2DNS%E6%8A%95%E6%AF%92"><span class="nav-number">4.1.</span> <span class="nav-text">防DNS投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%BF%E5%91%8A%E8%BF%87%E6%BB%A4%E8%A7%84%E5%88%99"><span class="nav-number">4.2.</span> <span class="nav-text">广告过滤规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2"><span class="nav-number">5.</span> <span class="nav-text">历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 在上上期中我介绍了使用AdGuard Home来过滤广告的方法，今天我再推荐一款同样好用的本地DNS及广告过滤工具——Pi-hole，相比于AdGuard Home来说，Pi-hole诞生更早，一开始它是为树莓派开发的一款广告过滤工具，在许多开发者的努力下，它被发扬光大了，也正因为这款工具的诞生，让我在过去那段时间里能让自己的移动设备免受广告的侵扰，以至于至今我还把它当成主力的广告过滤工具在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇">
+<meta property="og:url" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 在上上期中我介绍了使用AdGuard Home来过滤广告的方法，今天我再推荐一款同样好用的本地DNS及广告过滤工具——Pi-hole，相比于AdGuard Home来说，Pi-hole诞生更早，一开始它是为树莓派开发的一款广告过滤工具，在许多开发者的努力下，它被发扬光大了，也正因为这款工具的诞生，让我在过去那段时间里能让自己的移动设备免受广告的侵扰，以至于至今我还把它当成主力的广告过滤工具在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/01.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/30.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/31.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/32.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/02.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/33.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/05.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/06.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/07.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/08.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/09.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/10.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/11.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/12.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/13.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/14.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/16.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/18.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/19.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/20.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/24.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/26.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/27.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/39.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/37.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/38.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/40.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/41.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/45.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/44.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/46.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/47.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/48.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/49.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/50.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/51.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/52.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/53.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/54.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/55.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/56.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/57.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/58.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/60.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/62.png">
+<meta property="article:published_time" content="2019-08-29T22:33:34.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.377Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/01.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇 | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/08/29/linux-router-06-block-ads-with-pi-hole/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划06 广告屏蔽就是这么简单——Pi-hole篇
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-29 22:33:34" itemprop="dateCreated datePublished" datetime="2019-08-29T22:33:34+00:00">2019-08-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>在上上期中我介绍了使用AdGuard Home来过滤广告的方法，今天我再推荐一款同样好用的本地DNS及广告过滤工具——<a target="_blank" rel="noopener" href="https://pi-hole.net/">Pi-hole</a>，相比于AdGuard Home来说，Pi-hole诞生更早，一开始它是为树莓派开发的一款广告过滤工具，在许多开发者的努力下，它被发扬光大了，也正因为这款工具的诞生，让我在过去那段时间里能让自己的移动设备免受广告的侵扰，以至于至今我还把它当成主力的广告过滤工具在我的软路由上默默的为全家手机服务</p>
+<span id="more"></span>
+
+<h2 id="视频说明"><a href="#视频说明" class="headerlink" title="视频说明"></a>视频说明</h2><hr>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/OmjU_P3h1dQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h2 id="Pi-hole是什么"><a href="#Pi-hole是什么" class="headerlink" title="Pi-hole是什么"></a>Pi-hole是什么</h2><hr>
+<p>Pi-hole的核心组件pihole-FTL实际上就是一个dnsmasq的分支，它相比于原版的dnsmasq在功能上有专门针对广告过滤的优化，它只是将过去需要手动进行的广告过滤规则进行了自动化配置；原版的dnsmasq可以通过address&#x3D;这样的配置进行广告屏蔽，如果广告域名较多的话，那配置起来简直让人抓狂，而Pi-hole作为一款好用的工具简化了广告过滤规则的配置过程，真乃懒人之福音</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/01.png" class="" title="pihole 01">
+
+<h2 id="搭建过程"><a href="#搭建过程" class="headerlink" title="搭建过程"></a>搭建过程</h2><hr>
+<blockquote>
+<p>由于Pi-hole的本质就是dnsmasq，为了不影响其正常的安装，在安装之前需要卸载掉本机已经安装的dnsmasq，这也是为什么我在上期视频中没有附加广告过滤部分的原因</p>
+</blockquote>
+<h3 id="前期准备"><a href="#前期准备" class="headerlink" title="前期准备"></a>前期准备</h3><ul>
+<li>备份dnsmasq配置并将其卸载:</li>
+</ul>
+<p>执行命令<code>systemctl stop dnsmasq</code>将dnsmasq服务停止，之后就是将上次编写的配置文件给备份（实际上并不需要备份，基本上会自动生成），此处我使用<code>mv</code>命令，直接将整个目录重命名了，这样有两点好处：</p>
+<p>1.备份</p>
+<p>2.防止安装Pi-hole之后因为配置冲突造成启动失败</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/30.png" class="" title="pihole 02">
+
+<p>此处实际上应该还要卸载，只是我忘记了，大家记得要执行下述命令来进行dnsmasq的卸载<code>apt-get autoremove dnsmasq -y</code></p>
+<ul>
+<li>安装必要的下载工具<strong>curl</strong></li>
+</ul>
+<p>安装Pi-hole的一键脚本需要用到，那就装呗，<code>apt-get install curl -y</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/31.png" class="" title="pihole 03">
+
+<ul>
+<li>配置代理</li>
+</ul>
+<p>感谢伟大的GFW，装个国外的软件真心好痛苦，还好咱有代理可以用，<code>export</code>命令走起</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/32.png" class="" title="pihole 04">
+
+<h3 id="一键安装"><a href="#一键安装" class="headerlink" title="一键安装"></a>一键安装</h3><p>想要安装Pi-hole还是很简单的（这是现在，过去可是很坑的，动不动依赖就会出问题，当然大部分原因都是有伟大的GFW），官方直接提供了一键脚本</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/02.png" class="" title="pihole 05">
+
+<p>根据官方给出的命令，执行就是了<code>curl -sSL https://install.pi-hole.net | bash</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/33.png" class="" title="pihole 06">
+
+<p>如果不出意外的话，基本上都能顺利的进入配置界面</p>
+<h3 id="安装配置"><a href="#安装配置" class="headerlink" title="安装配置"></a>安装配置</h3><ul>
+<li>在安装部分依赖之后，系统会自动进入配置的界面，如下图所示：</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/05.png" class="" title="pihole 07">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/06.png" class="" title="pihole 08">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/07.png" class="" title="pihole 09">
+
+<blockquote>
+<p>Pi-hole的一些说明之后就是正式的安装配置了</p>
+</blockquote>
+<ul>
+<li>选择提供服务的网卡，此处是LAN口的<strong>ens224</strong></li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/08.png" class="" title="pihole 10">
+
+<ul>
+<li>选择上游服务器，现在图省事我直接使用了Google的，然后直接确定进入下一步</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/09.png" class="" title="pihole 11">
+
+<ul>
+<li>广告过滤的策略，先保持默认吧</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/10.png" class="" title="pihole 12">
+
+<ul>
+<li>选择IP类型，<strong>IPv4</strong> OR <strong>IPv6</strong>，现在<strong>IPv6</strong>还有很多问题，暂时就只用<strong>IPv4</strong>吧</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/11.png" class="" title="pihole 13">
+
+<ul>
+<li>确认一下网络设置情况，保证能够正常上网</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/12.png" class="" title="pihole 14">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/13.png" class="" title="pihole 15">
+
+<ul>
+<li>之后系统会询问是否需要安装web界面，小白必备，自然是需要的</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/14.png" class="" title="pihole 16">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/16.png" class="" title="pihole 17">
+
+<ul>
+<li>开启查询记录，此处我选择了记录全部内容</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/18.png" class="" title="pihole 18">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/19.png" class="" title="pihole 19">
+
+<p>之后Pi-hole就会基于刚刚的配置开始自动安装，这期间需要下载一些组件，如果网络不好的话就有可能会失败，所以代理还是很有必要的</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/20.png" class="" title="pihole 20">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/24.png" class="" title="pihole 21">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/26.png" class="" title="pihole 22">
+
+<p>接下来就进入最后的一部分配置，包括防火墙，登陆密码等</p>
+<ul>
+<li>配置防火墙（如果没有启用防火墙，这边可以随意），建议安装Pi-hole需要用到的防火墙规则，默认会打开其所需要用到的端口:<code>53</code>、<code>67</code>、<code>4711~4720</code>、<code>80</code></li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/27.png" class="" title="pihole 23">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/39.png" class="" title="pihole 24">
+
+<ul>
+<li>完成安装及显示登录密码，之后可以通过显示的登陆地址和登陆密码进行后台管理</li>
+</ul>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/37.png" class="" title="pihole 25">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/38.png" class="" title="pihole 26">
+
+<h2 id="后台管理"><a href="#后台管理" class="headerlink" title="后台管理"></a>后台管理</h2><hr>
+<h3 id="登陆"><a href="#登陆" class="headerlink" title="登陆"></a>登陆</h3><p>登陆地址在安装完之后会自动显示，其实就是两个网卡所对应的地址，默认直接输入<a target="_blank" rel="noopener" href="http://ip/admin">http://ip/admin</a>即可进入界面，如果没有在IP后面加上<code>/admin</code>，那默认会进入如下界面：</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/40.png" class="" title="pihole 27">
+
+<p>直接点击<code>Did you mean to go to the admin panel</code>即可进入后台界面，之后看到的就是基本的状态界面，上面可以直观的看到请求数，被拦截的查询等</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/41.png" class="" title="pihole 28">
+
+<p>这个界面只是状态展示，如果要进行管理，需要登录进去，点击左侧的<strong>Login</strong>进行登录，密码在Pi-hole安装完之后已经显示在界面上了</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/45.png" class="" title="pihole 29">
+
+<p>如果嫌自动生成的密码太难记，直接可以使用<code>pihole -a -p</code>命令进行修改，执行命令后输入两次新密码即可</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/44.png" class="" title="pihole 30">
+
+<p>登陆之后所有功能都会在左侧显示，状态界面显示的内容也会更丰富</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/46.png" class="" title="pihole 31">
+
+<h3 id="功能配置"><a href="#功能配置" class="headerlink" title="功能配置"></a>功能配置</h3><blockquote>
+<p>Pi-hole的大部分功能配置都是在系统设置中调整的，点击左侧的<strong>Settings</strong>选项，出现系统配置的几个选项卡</p>
+</blockquote>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/47.png" class="" title="pihole 32">
+
+<ul>
+<li><strong>上游DNS调整</strong></li>
+</ul>
+<p>选择<strong>DNS</strong>选项卡，在安装过程中我使用了谷歌的DNS服务器，此时我依然打算使用DNSCrypt-Proxy作为主要的上游服务器，取消谷歌的服务器的勾选，在**Custom 1(IPv4)**中填入DNSCrypt-Proxy的监听地址及端口，此处是<code>127.0.0.1#5353</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/48.png" class="" title="pihole 33">
+
+<p>点击右下角的<strong>SAVE</strong>之后即可生效，同时在<code>/etc/dnsmasq.d/</code>目录下的配置文件也会出现相应的修改，由于pihole-FTL就是一个dnsmasq的增强版本，所以dnsmasq上使用的语法在它身上依然可以使用，<code>vi /etc/dnsmasq.d/01-pihole.conf</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/49.png" class="" title="pihole 34">
+
+<blockquote>
+<p>此处可以看到服务器部分已经是自定义的那个服务器地址了</p>
+</blockquote>
+<ul>
+<li><strong>启用DHCP功能</strong></li>
+</ul>
+<p>选择<strong>DHCP</strong>选项卡，勾选<strong>DHCP server enabled</strong>，并配置好起始和结束的IP地址，当然，也不要忘记把网关地址设置正确，同样的，保存之后就可生效，相应的在<code>/etc/dnsmasq.d</code>目录下也会生成对应的配置文件</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/50.png" class="" title="pihole 35">
+
+<p>此时DHCP功能的配置文件名是<code>02-pihole-dhcp.conf</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/51.png" class="" title="pihole 36">
+
+<ul>
+<li><strong>添加合理的广告过滤规则</strong></li>
+</ul>
+<p>点击<strong>Blocklists</strong>查看默认的广告过滤规则，这些广告过滤规则并不符合中国用户的使用习惯，此处我建议全部取消前面的勾选</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/52.png" class="" title="pihole 37">
+
+<p>此处我推荐一个广告过滤规则的Github项目：<a target="_blank" rel="noopener" href="https://github.com/neoFelhz/neohosts">neohosts</a></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/53.png" class="" title="pihole 38">
+
+<p>项目提供的几种类型的规则地址，我主要推荐如下两个，这两个任选其一即可，具体的不同可以查看项目的说明</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/54.png" class="" title="pihole 39">
+
+<p>直接复制规则的地址，填入<strong>Blocklists</strong>选项卡的规则地址位置，点击<strong>Save and Update</strong>使其生效即可</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/55.png" class="" title="pihole 40">
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/56.png" class="" title="pihole 41">
+
+<blockquote>
+<p>此时添加的规则已经可以满足轻量级的广告过滤需求了，当然，如果想要更加强力点的广告过滤能力，建议移植<a target="_blank" rel="noopener" href="https://adblockplus.org/">Adblock plus</a>中的Easylistchina等规则，由于Pi-hole并不兼容Adblock plus的规则语法，所以只能移植其中收集到的广告域名，虽然功能上受限制了，但是也是对原有广告过滤功能的增强</p>
+</blockquote>
+<p>在<code>/opt</code>目录下新建一个脚本文件<code>adblock.sh</code>，输入如下内容：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">curl -s -L https://easylist-downloads.adblockplus.org/easylistchina+easylist.txt https://easylist-downloads.adblockplus.org/malwaredomains_full.txt https://easylist-downloads.adblockplus.org/fanboy-social.txt &gt; adblock.unsorted</span><br><span class="line"></span><br><span class="line">sort -u adblock.unsorted | grep ^\|\|.*\^$ | grep -v \/ &gt; adblock.sorted</span><br><span class="line"></span><br><span class="line">sed &#x27;s/[\|^]//g&#x27; &lt; adblock.sorted &gt; adblock.hosts</span><br><span class="line"></span><br><span class="line">rm adblock.unsorted adblock.sorted</span><br></pre></td></tr></table></figure>
+
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/57.png" class="" title="pihole 42">
+
+<p>保存并退出，然后执行<code>bash ./adblock.sh</code>，稍等片刻，之后就会生成一个包含大量域名的文件<code>adblock.hosts</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/58.png" class="" title="pihole 43">
+
+<p>同样的在<strong>Blocklists</strong>中填写规则地址，由于<code>adblock.hosts</code>文件是本地文件，所以规则的地址需要变化一下，将<code>http(s)://</code>替换为<code>file://</code>，之后在后面跟上文件的完整路径即可，此处的规则地址是<code>file:///opt/adblock.hosts</code></p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/60.png" class="" title="pihole 44">
+
+<ul>
+<li><strong>DNS查询分流</strong></li>
+</ul>
+<p>这个功能在上一期中已经介绍过，在<code>/etc/dnsmasq.d</code>目录下引入<a target="_blank" rel="noopener" href="https://github.com/felixonmars/dnsmasq-china-list">dnsmasq-china-list</a>的配置文件即可，这里我依然使用软链接的方式进行添加，添加完成之后直接执行<code>pihole restartdns</code>即可重启Pi-hole服务</p>
+<img src="/2019/08/29/linux-router-06-block-ads-with-pi-hole/62.png" class="" title="pihole 45">
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><hr>
+<p>至此Pi-hole算是搭建完成了，虽然广告过滤是使用了DNS解析过滤的方式，效果并不是特别好，但好处是不会影响网速，相比于浏览器插件而言，各有优缺点吧！</p>
+<p>如果想要自定义一些域名的处理方式的话，在左侧的<strong>Whitelist</strong>和<strong>Blacklist</strong>中可以手动进行调整，具体的就不展开了，大家有兴趣去自己尝试一下</p>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
+<ul>
+<li><strong>2019.08.29</strong> 建立初稿</li>
+<li><strong>2019.09.04</strong> 完成内容</li>
+<li><strong>2019.09.10</strong> 增加视频说明</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/" rel="prev" title="又一款内网穿透工具——inlets">
+      <i class="fa fa-chevron-left"></i> 又一款内网穿透工具——inlets
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/09/16/linux-router-07-over-the-gfw/" rel="next" title="Linux路由补完计划07 翻越长城">
+      Linux路由补完计划07 翻越长城 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%86%E9%A2%91%E8%AF%B4%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">视频说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pi-hole%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">3.</span> <span class="nav-text">Pi-hole是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%90%AD%E5%BB%BA%E8%BF%87%E7%A8%8B"><span class="nav-number">4.</span> <span class="nav-text">搭建过程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E6%9C%9F%E5%87%86%E5%A4%87"><span class="nav-number">4.1.</span> <span class="nav-text">前期准备</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85"><span class="nav-number">4.2.</span> <span class="nav-text">一键安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE"><span class="nav-number">4.3.</span> <span class="nav-text">安装配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E5%8F%B0%E7%AE%A1%E7%90%86"><span class="nav-number">5.</span> <span class="nav-text">后台管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%99%BB%E9%99%86"><span class="nav-number">5.1.</span> <span class="nav-text">登陆</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%9F%E8%83%BD%E9%85%8D%E7%BD%AE"><span class="nav-number">5.2.</span> <span class="nav-text">功能配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2"><span class="nav-number">7.</span> <span class="nav-text">历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>

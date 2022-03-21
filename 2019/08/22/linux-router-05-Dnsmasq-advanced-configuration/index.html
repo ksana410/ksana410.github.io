@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ksana410.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="前言 相比于AdGuard Home，我更喜欢使用dnsmasq，主要是因为他配置起来会更加随意，配置一些其他的工具可以实现很多进阶的功能，本篇文章主要是在DNS和DHCP的基础上进行增强的演示和说明，希望可以给大家一些灵感">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux路由补完计划05 dnsmasq进阶配置">
+<meta property="og:url" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/index.html">
+<meta property="og:site_name" content="Vincent折腾笔记">
+<meta property="og:description" content="前言 相比于AdGuard Home，我更喜欢使用dnsmasq，主要是因为他配置起来会更加随意，配置一些其他的工具可以实现很多进阶的功能，本篇文章主要是在DNS和DHCP的基础上进行增强的演示和说明，希望可以给大家一些灵感">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/01.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/02.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/04.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/05.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/06.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/07.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/08.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/09.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/10.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/11.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/12.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/13.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/14.png">
+<meta property="og:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/15.png">
+<meta property="article:published_time" content="2019-08-22T00:38:23.000Z">
+<meta property="article:modified_time" content="2022-03-20T17:39:27.369Z">
+<meta property="article:author" content="ksana410">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/01.png">
+
+<link rel="canonical" href="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Linux路由补完计划05 dnsmasq进阶配置 | Vincent折腾笔记</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vincent折腾笔记</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Vincent折腾笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ksana410.github.io/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ksana410">
+      <meta itemprop="description" content="热爱瞎折腾的理工男">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vincent折腾笔记">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux路由补完计划05 dnsmasq进阶配置
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2019-08-22 00:38:23" itemprop="dateCreated datePublished" datetime="2019-08-22T00:38:23+00:00">2019-08-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-03-20 17:39:27" itemprop="dateModified" datetime="2022-03-20T17:39:27+00:00">2022-03-20</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
+<p>相比于AdGuard Home，我更喜欢使用dnsmasq，主要是因为他配置起来会更加随意，配置一些其他的工具可以实现很多进阶的功能，本篇文章主要是在DNS和DHCP的基础上进行增强的演示和说明，希望可以给大家一些灵感</p>
+<span id="more"></span>
+
+<h2 id="视频说明"><a href="#视频说明" class="headerlink" title="视频说明"></a>视频说明</h2><hr>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kXPKnEC7MCc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+<h2 id="进阶功能"><a href="#进阶功能" class="headerlink" title="进阶功能"></a>进阶功能</h2><hr>
+<blockquote>
+<p>使用下述功能可以有效的增强挂梯子的效果，大家不妨尝试一下</p>
+</blockquote>
+<ul>
+<li>DNS防污染</li>
+<li>对接DNS_over_HTTPS和DNSCrypt客户端</li>
+<li>解析分流（中国域名使用国内解析服务器进行解析，国外的使用国外的解析）</li>
+<li>广告过滤（限于篇幅，本篇暂未收录，主要是通过Pi-hole实现）</li>
+</ul>
+<h2 id="功能实现"><a href="#功能实现" class="headerlink" title="功能实现"></a>功能实现</h2><hr>
+<h3 id="利用DNSCrypt-Proxy搭建无污染DNS服务器"><a href="#利用DNSCrypt-Proxy搭建无污染DNS服务器" class="headerlink" title="利用DNSCrypt-Proxy搭建无污染DNS服务器"></a>利用<a target="_blank" rel="noopener" href="https://github.com/jedisct1/dnscrypt-proxy">DNSCrypt-Proxy</a>搭建无污染DNS服务器</h3><p>dnsmasq如果要作为一个DNS服务器存在，必须添加上级服务器，而此处添加的上级服务器将决定它能为下级客户端提供怎样的解析服务，上次做演示的时候使用了114.114.114.114和8.8.4.4这两个DNS服务器，如果大家看过上一篇文章的话，应该知道普通的DNS协议容易被投毒，为了获取的正确的没有被污染的地址，此处我将替换掉这两个地址，并利用DNSCrypt-Proxy搭建另一个DNS服务器</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/01.png" class="" title="dnsmasq 01">
+
+<p>为啥需要两个服务呢，原因主要是dnsmasq可以提供缓存功能，而没有污染的DNSCrypt-Proxy用来解析地址的话延迟感人，如果每一次都交由它来进行解析的话那体验真心难受，在<a target="_blank" rel="noopener" href="https://youtu.be/Aez-j5dENaU">Linux路由补完计划3</a>中的翻车现场就是因为DoH服务延迟太高造成的，所以在本地建立一个缓存可以弥补高延迟所带来的问题，同时也可以利用dnsmasq的一些其它的功能</p>
+<h4 id="安装DNSCrypt-Proxy"><a href="#安装DNSCrypt-Proxy" class="headerlink" title="安装DNSCrypt-Proxy"></a>安装DNSCrypt-Proxy</h4><p>DNSCrypt可以加密和认证用户和 DNS 解析服务器之间的数据传输。IP 数据本身没有任何变化，DNScrypt 可以避免 DNS 查询欺骗，确保 DNS 相应来自选择的 DNS 服务器。而DNSCrypt-Proxy这是这个工具的本地化工具，而且它支持的平台还特别多，基本涵盖市面上大部分的平台</p>
+<ul>
+<li><strong>项目地址：</strong> <a target="_blank" rel="noopener" href="https://github.com/jedisct1/dnscrypt-proxy">https://github.com/jedisct1/dnscrypt-proxy</a></li>
+</ul>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/02.png" class="" title="dnsmasq 02">
+
+<ul>
+<li><p><strong>下载最新安装包：</strong> 由于使用的32系统，所以我下载了<a target="_blank" rel="noopener" href="https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_i386-2.0.25.tar.gz">i386</a>版本的</p>
+</li>
+<li><p><strong>安装过程：</strong></p>
+</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">进入opt目录，我将把DNSCrypt-Proxy安装在这个目录下</span></span><br><span class="line">cd /opt</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载对应的压缩包</span></span><br><span class="line">wget https://github.com/jedisct1/dnscrypt-proxy/releases/download/2.0.25/dnscrypt-proxy-linux_i386-2.0.25.tar.gz</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将压缩包解压</span></span><br><span class="line">tar xzf dnscrypt-proxy-linux_i386-2.0.25.tar.gz</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">进入解压到的目录</span></span><br><span class="line">cd linux-i386</span><br></pre></td></tr></table></figure>
+
+<p>当执行<code>ls</code>命令时，可以看到DNSCrypt-Proxy的构成很简单</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/04.png" class="" title="dnsmasq 03">
+
+<p>使用这个目录下的执行文件就可以完成DNS服务器的安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">生成配置文件，利用模板文件来生成</span></span><br><span class="line">cp example-dnscrypt-proxy.toml dnscrypt-proxy.toml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">通过配置文件修改服务的监听端口</span></span><br><span class="line">vi dnscrypt-proxy.toml</span><br></pre></td></tr></table></figure>
+
+<p>通过关键字搜索需要修改的项目</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/05.png" class="" title="dnsmasq 04">
+
+<p>由于dnsmasq作为主服务器已经占用了53端口，为了避免程序出错，此处修改为5353，同时由于ipv6还没有在本项目中实施，所以也删除ipv6监听端口，修改完之后是这样的</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/06.png" class="" title="dnsmasq 05">
+
+<p>保存并退出，继续执行下述的操作</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将DNSCrypt-Proxy安装为服务</span></span><br><span class="line">./dnscrypt-proxy --service install</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动服务</span></span><br><span class="line">./dnscrypt-proxy --service start</span><br></pre></td></tr></table></figure>
+
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/07.png" class="" title="dnsmasq 06">
+
+<p>此时DNSCrypt-Proxy就已经安装好了，并且已经添加了开机启动项</p>
+<ul>
+<li><strong>验证是否运行：</strong></li>
+</ul>
+<p>直接使用<code>htop</code>命令查看进程，DNSCrypt-Proxy进程已经正常运行</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/08.png" class="" title="dnsmasq 07">
+
+<h4 id="替换dnsmasq上游DNS服务器"><a href="#替换dnsmasq上游DNS服务器" class="headerlink" title="替换dnsmasq上游DNS服务器"></a>替换dnsmasq上游DNS服务器</h4><p><code>vi /etc/dnsmasq.d/dns.conf</code>打开dns配置文件，将原来添加的114.114.114.114和8.8.4.4替换为127.0.0.1:5353，此处由于没有使用53端口作为监听口，所以必须手动指明端口号</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/09.png" class="" title="dnsmasq 08">
+
+<p>执行<code>systemctl restart dnsmasq</code>即可生效</p>
+<h4 id="选择DNS解析查询模式"><a href="#选择DNS解析查询模式" class="headerlink" title="选择DNS解析查询模式"></a>选择DNS解析查询模式</h4><p>DNSCrypt-Proxy不仅可以支持其自身的DNSCrypt协议，同时也支持通过DNS_over_HTTPS的方式来进行查询</p>
+<p>选择哪种模式可以在配置文件中进行配置，<code>vi /opt/linux-i386/dnscrypt-proxy.toml</code></p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/10.png" class="" title="dnsmasq 09">
+
+<p>默认情况下两种协议都是开启的，需要关闭哪种就将哪种后面的<code>true</code>改成<code>false</code>即可，同时重启一下服务即可<code>systemctl restart dnscrypt-proxy</code></p>
+<h3 id="DNS查询分流"><a href="#DNS查询分流" class="headerlink" title="DNS查询分流"></a>DNS查询分流</h3><blockquote>
+<p>虽然添加了DNSCrypt-Proxy作为上游服务器来解决DNS污染，但由于使用的加密公共服务器普遍都在国外，解析国内网站就比较蛋疼了，为了解决延迟问题，对国内的域名使用国内的解析服务器进行查询会比较靠谱</p>
+</blockquote>
+<p>利用<a target="_blank" rel="noopener" href="https://github.com/felixonmars/dnsmasq-china-list">dnsmasq-china-list</a>这个项目来解决这个问题，作者收集了大量的国内网站域名，然后利用dnsmasq可以为域名指定解析服务器的功能来进行分流，如果一来，国外的域名通过DNSCrypt-Proxy进行解析，而国内的域名就通过指定的国内服务器进行解析，然后再依靠dnsmasq的缓存功能，体验会很好</p>
+<h4 id="下载dnsmasq-china-list"><a href="#下载dnsmasq-china-list" class="headerlink" title="下载dnsmasq-china-list"></a>下载dnsmasq-china-list</h4><p>直接<code>git clone https://github.com/felixonmars/dnsmasq-china-list</code>拖取项目</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/11.png" class="" title="dnsmasq 10">
+
+<p>进入目录后可以看到上述内容，这里需要用到的主要是<code>accelerated-domains.china.conf</code>,<code>google.china.conf</code>，<code>apple.china.conf</code>，<code>bogus-nxdomain.china.conf</code>这几个文件，分别对应国内域名，google在中国的服务域名，苹果在中国的域名以及运营商劫持ip地址</p>
+<h4 id="使用dnsmasq-china-list"><a href="#使用dnsmasq-china-list" class="headerlink" title="使用dnsmasq-china-list"></a>使用dnsmasq-china-list</h4><p>根据官方的说明，可以直接执行<code>./install.sh</code>进行安装，而我想自己根据需要使用一些功能，所以使用手动安装，为了方便后期更新，此处我直接使用软链接的方式进行安装</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ln -s /opt/dnsmasq-china-list/accelerated-domains.china.conf /etc/dnsmasq.d/accelerated-domains.china.conf</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">可选</span></span><br><span class="line">ln -s /opt/dnsmasq-china-list/google.china.conf /etc/dnsmasq.d/google.china.conf</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">可选</span></span><br><span class="line">ln -s /opt/dnsmasq-china-list/apple.china.conf /etc/dnsmasq.d/apple.china.conf</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">防止在使用无效域名解析时被运营商劫持</span></span><br><span class="line">ln -s /opt/dnsmasq-china-list/bogus-nxdomain.china.conf /etc/dnsmasq.d/bogus-nxdomain.china.conf</span><br></pre></td></tr></table></figure>
+
+<p>建立四个软链接，这样当我执行<code>git pull</code>进行拖取更新之后，相应的 “&#x2F;etc&#x2F;dnsmasq.d&#x2F;”目录下的配置也相应的进行更改了</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/12.png" class="" title="dnsmasq 11">
+
+<p>之后重启dnsmasq服务即可生效<code>systemctl restart dnsmasq</code></p>
+<h2 id="验证一下"><a href="#验证一下" class="headerlink" title="验证一下"></a>验证一下</h2><hr>
+<p>执行<code>dig @127.0.0.1 www.youtube.com</code>验证一下，由于需要使用本地服务器进行解析，所以需要加上@127.0.0.1这一个参数，第一次解析如下</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/13.png" class="" title="dnsmasq 12">
+
+<p>第二次解析结果，由于缓存的存在，解析时间已经变为了0</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/14.png" class="" title="dnsmasq 13">
+
+<p>对比一下通过<a target="_blank" rel="noopener" href="https://dns.google.com/">https://dns.google.com</a>得到的结果，基本上已经是同一个网段了，据此判断已经没有污染了</p>
+<img src="/2019/08/22/linux-router-05-Dnsmasq-advanced-configuration/15.png" class="" title="dnsmasq 14">
+
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><ul>
+<li><strong>2019.08.22</strong> 初稿</li>
+<li><strong>2019.08.23</strong> 添加内容</li>
+<li><strong>2019.08.25</strong> 完成正文</li>
+<li><strong>2019.09.10</strong> 添加视频说明</li>
+<li><strong>2020.01.30</strong> 修正部分错误</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/08/11/linux-router-04-AdGuard-Home-settings/" rel="prev" title="Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染">
+      <i class="fa fa-chevron-left"></i> Linux路由补完计划04 配置AdGuard Home实现广告过滤及DNS防污染
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/08/27/expose-your-local-endpoint-to-internet-with-inlets/" rel="next" title="又一款内网穿透工具——inlets">
+      又一款内网穿透工具——inlets <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    
+  <div class="comments">
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80NTQzMy8yMTk0NQ"></div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%86%E9%A2%91%E8%AF%B4%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">视频说明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E9%98%B6%E5%8A%9F%E8%83%BD"><span class="nav-number">3.</span> <span class="nav-text">进阶功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%9F%E8%83%BD%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.</span> <span class="nav-text">功能实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A9%E7%94%A8DNSCrypt-Proxy%E6%90%AD%E5%BB%BA%E6%97%A0%E6%B1%A1%E6%9F%93DNS%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">4.1.</span> <span class="nav-text">利用DNSCrypt-Proxy搭建无污染DNS服务器</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E8%A3%85DNSCrypt-Proxy"><span class="nav-number">4.1.1.</span> <span class="nav-text">安装DNSCrypt-Proxy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9B%BF%E6%8D%A2dnsmasq%E4%B8%8A%E6%B8%B8DNS%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="nav-number">4.1.2.</span> <span class="nav-text">替换dnsmasq上游DNS服务器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%89%E6%8B%A9DNS%E8%A7%A3%E6%9E%90%E6%9F%A5%E8%AF%A2%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.1.3.</span> <span class="nav-text">选择DNS解析查询模式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS%E6%9F%A5%E8%AF%A2%E5%88%86%E6%B5%81"><span class="nav-number">4.2.</span> <span class="nav-text">DNS查询分流</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BDdnsmasq-china-list"><span class="nav-number">4.2.1.</span> <span class="nav-text">下载dnsmasq-china-list</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8dnsmasq-china-list"><span class="nav-number">4.2.2.</span> <span class="nav-text">使用dnsmasq-china-list</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E4%B8%80%E4%B8%8B"><span class="nav-number">5.</span> <span class="nav-text">验证一下</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8E%86%E5%8F%B2"><span class="nav-number">6.</span> <span class="nav-text">历史</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ksana410</p>
+  <div class="site-description" itemprop="description">热爱瞎折腾的理工男</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ksana410" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ksana410" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ddxiong0410@gmail.com" title="E-Mail → mailto:ddxiong0410@gmail.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://www.youtube.com/channel/UCuD7wIVAKLcB6iDbdsKxFxw" title="YouTube → https:&#x2F;&#x2F;www.youtube.com&#x2F;channel&#x2F;UCuD7wIVAKLcB6iDbdsKxFxw" rel="noopener" target="_blank"><i class="youtube fa-fw"></i>YouTube</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ksana410</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+NexT.utils.loadComments(document.querySelector('#lv-container'), () => {
+  window.livereOptions = {
+    refer: location.pathname.replace(CONFIG.root, '').replace('index.html', '')
+  };
+  (function(d, s) {
+    var j, e = d.getElementsByTagName(s)[0];
+    if (typeof LivereTower === 'function') { return; }
+    j = d.createElement(s);
+    j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+    j.async = true;
+    e.parentNode.insertBefore(j, e);
+  })(document, 'script');
+});
+</script>
+
+</body>
+</html>
