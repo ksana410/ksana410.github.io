@@ -71,21 +71,21 @@ v2ray的分流主要集中在 **routings** 部分进行配置
   "rules": [
     {
       "type": "field",
-	    "outboundTag": "blockout",
-	    "domain": [
+      "outboundTag": "blockout",
+      "domain": [
         "geosite:category-ads-all" //匹配广告域名，并路由到 blockout 部分，即被拦截
       ]
     },
     {
       "type": "field",
-	    "outboundTag": "direct",
-	    "domain": [
-	      "geosite:apple", //匹配 Apple 旗下域名，并路由到 direct 部分，即直连
+      "outboundTag": "direct",
+      "domain": [
+        "geosite:apple", //匹配 Apple 旗下域名，并路由到 direct 部分，即直连
         "geosite:cn" //匹配大陆域名，并路由到 direct 部分，即直连
-	    ]
+      ]
     },
-    {	
-	    "type": "field",
+    {
+      "type": "field",
       "outboundTag": "proxy01",
       "domain": [
         "geosite:google", //匹配 Google 旗下域名，并路由到 proxy01 部分，即转发到 proxy01 出口
@@ -123,8 +123,9 @@ v2ray的分流主要集中在 **routings** 部分进行配置
 ### 第三方文件
 
 除了安装包中内置的 geosite.dat 和 geoip.dat 文件外，v2ray 还可以使用第三方的域名列表文件，我个人使用了
-https://github.com/ToutyRater/V2Ray-SiteDAT
-https://github.com/Loyalsoldier/v2ray-rules-dat
+
+* [V2Ray-SiteDAT](https://github.com/ToutyRater/V2Ray-SiteDAT)
+* [v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat)
 
 ### 实例
 
@@ -134,3 +135,4 @@ https://github.com/Loyalsoldier/v2ray-rules-dat
 
 * **2019.10.19** 初稿
 * **2019.11.04** 协议分析
+* **2022.03.22** 部分调整
