@@ -1662,11 +1662,11 @@
 <li>routing</li>
 </ul>
 <blockquote>
-<p>这三个部分的作用比较大，其它的暂时就不做分析了</p>
+<p>这三个部分的作用比较大，其它的暂时就不做分析了。</p>
 </blockquote>
 <h2 id="v2ray工作流程"><a href="#v2ray工作流程" class="headerlink" title="v2ray工作流程"></a>v2ray工作流程</h2><p>inbounds &lt;—-&gt; routing &lt;—-&gt; outbounds</p>
 <blockquote>
-<p>本地客户端通过 v2ray 对外开放的端口进行接入，此处常用socks或者dokodemo-door</p>
+<p>本地客户端通过 v2ray 对外开放的端口进行接入，此处常用 socks 或者 dokodemo-door，v2ray 将数据包传入 routing 模块，模块更具目的地址，端口，协议等条件基于用户设定的转发规则转发至对应的 outbounds 出口中，而 outbounds 出口可以提供数据黑洞，直连，或者多个代理服务器出口，走哪条路就看 routing 模块中的规则了，没有匹配到的数据流一般会使用 outbounds 中第一条设定的出口，所以此处设置的第一个出口决定了 v2ray 的默认转发路径。</p>
 </blockquote>
 <h2 id="v2ray进行分流"><a href="#v2ray进行分流" class="headerlink" title="v2ray进行分流"></a>v2ray进行分流</h2><hr>
 <p>v2ray的分流主要集中在 <strong>routings</strong> 部分进行配置</p>
@@ -1698,14 +1698,18 @@
 
 <h3 id="第三方文件"><a href="#第三方文件" class="headerlink" title="第三方文件"></a>第三方文件</h3><p>除了安装包中内置的 geosite.dat 和 geoip.dat 文件外，v2ray 还可以使用第三方的域名列表文件，我个人使用了</p>
 <ul>
-<li><a href="https://github.com/ToutyRater/V2Ray-SiteDAT">V2Ray-SiteDAT</a></li>
-<li><a href="https://github.com/Loyalsoldier/v2ray-rules-dat">v2ray-rules-dat</a></li>
+<li><a href="https://github.com/ToutyRater/V2Ray-SiteDAT">V2Ray-SiteDAT</a> 下载 <a href="https://github.com/ToutyRater/V2Ray-SiteDAT/tree/master/geofiles">geofiles</a> 目录下的 <code>h2y.dat</code> 文件，并将其复制到 v2ray 执行文件目录下，就是和自带的 geosite.dat 文件相同的位置，它自带两个列表，<strong>ad</strong> 和 <strong>gfw</strong>，作用就是字面意思，广告和 gfw 列表。如果需要使用第三方的域名列表，使用 <strong>“ext:h2y:ad”</strong> 和 <strong>“ext:h2y:gfw”</strong> 调用即可。</li>
+<li><a href="https://github.com/Loyalsoldier/v2ray-rules-dat">v2ray-rules-dat</a> 这个项目属于 v2ray 官方预定义列表文件加强版，可代替 V2Ray 官方 geoip.dat 和 geosite.dat，兼容 Shadowsocks-windows、Xray-core、Trojan-Go 和 leaf。利用 GitHub Actions 北京时间每天早上 6 点自动构建，保证规则最新，使用方法和官方的完全相同。功能比较强大，有兴趣的可以去看看。</li>
 </ul>
-<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
+<blockquote>
+<p>上述两个是我常用的，如果有兴趣，可以通过项目教程自己构建符合自己需求的域名列表文件。</p>
+</blockquote>
+<h2 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h2><hr>
 <ul>
 <li><strong>2019.10.19</strong> 初稿</li>
 <li><strong>2019.11.04</strong> 协议分析</li>
 <li><strong>2022.03.22</strong> 部分调整</li>
+<li><strong>2022.03.23</strong> 最后完稿</li>
 </ul>
 ]]></content>
       <tags>
@@ -1716,8 +1720,10 @@
     <title>Linux路由补完计划9 通过wireguard建立对外VPN</title>
     <url>/2020/01/14/linux-router-09-make-a-vpn-with-wireguard/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><hr>
-<p>梯子已经搭好了，在家上网自然可以没有限制的看世界，那如果出门了怎么办呢，手机上装客户端什么的也可以，但是显得逼格不够，那本篇就来建立一个vpn连接吧！</p>
-<h2 id="选择"><a href="#选择" class="headerlink" title="选择"></a>选择</h2><hr>
+<p>家中的所有设备都能正常的访问自由世界了，那么如果出门在外，该如何操作才能同样享受这样的便利呢，大部门小伙伴应该会安装一个移动端的代理工具，由于用户需求很旺盛，移动端已经出现了很多非常好用的代理工具，但我个人并没有使用这些工具，反而使用了一个看似很落后的方式解决这个问题，那就是在家中服务器上搭建一个 <strong>VPN</strong> 服务，手机通过 <strong>VPN</strong> 接入家中的内网，然后通过家中的路由系统实现科学上网，很多小伙伴会觉得这样属于多次一举，但这样的操作可以提供一些附加的功能，具体有些啥请参考下面的文章。哦，忘了说了，我所使用的搭建工具 <strong>Wireguard</strong>，相信很多新潮的小伙伴已经使用过这款 <strong>VPN</strong> 工具了。</p>
+<span id="more"></span>
+
+<h2 id="契机"><a href="#契机" class="headerlink" title="契机"></a>契机</h2><hr>
 <p>我选择的vpn协议是<a href="https://www.wireguard.com/">Wireguard</a>，曾经有一段时间它被很多人传颂为不怕被封的vpn，这个时候就要呵呵了，虽然它使用的是udp来进行数据通信的，但说它不怕被封就有点假了，运营商针对udp做个限速，你协议再牛也废了</p>
 <p>现在用它翻墙的人也不多了，但作为vpn难道就只能用来翻墙吗，当然不是（虽然我的目的还是用来连接到家中的网络进行翻墙），和家中的服务器进行加密通信也不错，没事看看家中nas上的电影，调取一些存档也是很不错的</p>
 <h2 id="Wireguard"><a href="#Wireguard" class="headerlink" title="Wireguard"></a>Wireguard</h2><hr>
@@ -1880,6 +1886,17 @@
 ]]></content>
       <tags>
         <tag>Notes</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux路由补完计划10 使用nftables替换iptables</title>
+    <url>/2022/03/22/linux-router-10-replace-iptables-with-nftables/</url>
+    <content><![CDATA[<h2 id="是时候可以考虑使用-nftables-了"><a href="#是时候可以考虑使用-nftables-了" class="headerlink" title="是时候可以考虑使用 nftables 了"></a>是时候可以考虑使用 nftables 了</h2><hr>
+<p>nftables 是一个 netfilter 项目，旨在替换现有的 {ip,ip6,arp,eb}tables 框架，为 {ip,ip6}tables 提供一个新的包过滤框架、一个新的用户空间实用程序（nft）和一个兼容层。它使用现有的钩子、链接跟踪系统、用户空间排队组件和 netfilter 日志子系统。</p>
+<span id="more"></span>
+]]></content>
+      <tags>
+        <tag>Linux</tag>
       </tags>
   </entry>
 </search>
