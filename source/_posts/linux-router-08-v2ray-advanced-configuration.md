@@ -23,13 +23,13 @@ date: 2019-10-19 23:51:15
 * outbounds
 * routing
 
-> 这三个部分的作用比较大，其它的暂时就不做分析了
+> 这三个部分的作用比较大，其它的暂时就不做分析了。
 
 ## v2ray工作流程
 
 inbounds <----> routing <----> outbounds
 
-> 本地客户端通过 v2ray 对外开放的端口进行接入，此处常用socks或者dokodemo-door
+> 本地客户端通过 v2ray 对外开放的端口进行接入，此处常用 socks 或者 dokodemo-door，v2ray 将数据包传入 routing 模块，模块更具目的地址，端口，协议等条件基于用户设定的转发规则转发至对应的 outbounds 出口中，而 outbounds 出口可以提供数据黑洞，直连，或者多个代理服务器出口，走哪条路就看 routing 模块中的规则了，没有匹配到的数据流一般会使用 outbounds 中第一条设定的出口，所以此处设置的第一个出口决定了 v2ray 的默认转发路径。
 
 ## v2ray进行分流
 
@@ -124,10 +124,10 @@ v2ray的分流主要集中在 **routings** 部分进行配置
 
 除了安装包中内置的 geosite.dat 和 geoip.dat 文件外，v2ray 还可以使用第三方的域名列表文件，我个人使用了
 
-* [V2Ray-SiteDAT](https://github.com/ToutyRater/V2Ray-SiteDAT)
-* [v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat)
+* [V2Ray-SiteDAT](https://github.com/ToutyRater/V2Ray-SiteDAT) 下载 [geofiles](https://github.com/ToutyRater/V2Ray-SiteDAT/tree/master/geofiles) 目录下的 `h2y.dat` 文件，并将其复制到 v2ray 执行文件目录下，就是和自带的 geosite.dat 文件相同的位置，它自带两个列表，**ad** 和 **gfw**，作用就是字面意思，广告和 gfw 列表。如果需要使用第三方的域名列表，使用 **"ext:h2y:ad"** 和 **"ext:h2y:gfw"** 调用即可。
+* [v2ray-rules-dat](https://github.com/Loyalsoldier/v2ray-rules-dat) 这个项目属于 v2ray 官方预定义列表文件加强版，可代替 V2Ray 官方 geoip.dat 和 geosite.dat，兼容 Shadowsocks-windows、Xray-core、Trojan-Go 和 leaf。利用 GitHub Actions 北京时间每天早上 6 点自动构建，保证规则最新，使用方法和官方的完全相同。功能比较强大，有兴趣的可以去看看。
 
-### 实例
+> 上述两个是我常用的，如果有兴趣，可以通过项目教程自己构建符合自己需求的域名列表文件。
 
 ## 历史
 
@@ -136,3 +136,4 @@ v2ray的分流主要集中在 **routings** 部分进行配置
 * **2019.10.19** 初稿
 * **2019.11.04** 协议分析
 * **2022.03.22** 部分调整
+* **2022.03.23** 最后完稿
